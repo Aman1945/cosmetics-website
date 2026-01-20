@@ -592,7 +592,8 @@ function initLoginModal() {
     if (loginBtn) {
         loginBtn.addEventListener('click', () => {
             if (loginModal) {
-                loginModal.style.display = 'block';
+                loginModal.style.display = 'flex';
+                loginModal.classList.add('active');
                 if (overlay) overlay.classList.add('active');
             }
         });

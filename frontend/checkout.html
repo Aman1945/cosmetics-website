@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - AS³Cosmetic</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/styles/main.css">
+    <style>
+        .checkout-container {
+            max-width: 1200px;
+            margin: 100px auto 50px;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .checkout-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .checkout-section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .step-number {
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, #ff6b9d, #c44569);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            color: #1a1a2e;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #ff6b9d;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(255, 107, 157, 0.1);
+        }
+
+        .otp-section {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .otp-section .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .otp-btn {
+            padding: 14px 20px;
+            background: linear-gradient(135deg, #ff6b9d, #c44569);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+
+        .otp-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 107, 157, 0.4);
+        }
+
+        .otp-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .otp-input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .otp-input {
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+        }
+
+        .otp-verified {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #27ae60;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .payment-options {
+            display: grid;
+            gap: 15px;
+        }
+
+        .payment-option {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .payment-option:hover {
+            border-color: #ff6b9d;
+        }
+
+        .payment-option.selected {
+            border-color: #ff6b9d;
+            background: rgba(255, 107, 157, 0.05);
+        }
+
+        .payment-option input {
+            display: none;
+        }
+
+        .payment-radio {
+            width: 22px;
+            height: 22px;
+            border: 2px solid #ccc;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .payment-option.selected .payment-radio {
+            border-color: #ff6b9d;
+        }
+
+        .payment-option.selected .payment-radio::after {
+            content: '';
+            width: 12px;
+            height: 12px;
+            background: #ff6b9d;
+            border-radius: 50%;
+        }
+
+        .payment-icon {
+            font-size: 1.5rem;
+        }
+
+        .payment-info h4 {
+            margin: 0;
+            color: #1a1a2e;
+        }
+
+        .payment-info p {
+            margin: 5px 0 0;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        /* Order Summary */
+        .order-summary {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+        }
+
+        .summary-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            color: #1a1a2e;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .cart-items {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .cart-item {
+            display: flex;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .cart-item img {
+            width: 70px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .item-details {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 5px;
+        }
+
+        .item-qty {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .item-price {
+            font-weight: 700;
+            color: #ff6b9d;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            color: #555;
+        }
+
+        .summary-row.total {
+            border-top: 2px solid #f0f0f0;
+            margin-top: 10px;
+            padding-top: 15px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .place-order-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #ff6b9d, #c44569);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .place-order-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 107, 157, 0.4);
+        }
+
+        .place-order-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .secure-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 15px;
+            color: #27ae60;
+            font-size: 0.9rem;
+        }
+
+        /* Success Modal */
+        .success-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .success-modal.active {
+            display: flex;
+        }
+
+        .success-content {
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .success-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: #1a1a2e;
+            margin-bottom: 10px;
+        }
+
+        .success-message {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .order-id {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        .continue-shopping {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #ff6b9d, #c44569);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .empty-cart-icon {
+            font-size: 4rem;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container nav-container">
+            <div class="nav-brand">
+                <a href="/" style="text-decoration: none;">
+                    <h1 class="logo">AS<sup>3</sup>Cosmetic</h1>
+                </a>
+            </div>
+            <div class="nav-actions">
+                <a href="/" class="btn btn-secondary">← Back to Shop</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Checkout Container -->
+    <div class="checkout-container" id="checkoutContainer">
+        <!-- Left Column - Forms -->
+        <div class="checkout-forms">
+            <!-- Phone Verification -->
+            <div class="checkout-section">
+                <div class="section-header">
+                    <div class="step-number">1</div>
+                    <h2 class="section-title">Phone Verification</h2>
+                </div>
+                <div class="otp-section">
+                    <div class="form-group">
+                        <label>Mobile Number</label>
+                        <input type="tel" id="phoneNumber" placeholder="Enter 10-digit mobile number" maxlength="10"
+                            pattern="[0-9]{10}">
+                    </div>
+                    <button class="otp-btn" id="sendOtpBtn" onclick="sendOTP()">Send OTP</button>
+                </div>
+                <div id="otpVerifySection" style="display: none;">
+                    <div class="otp-input-group">
+                        <input type="text" class="otp-input" maxlength="1" id="otp1">
+                        <input type="text" class="otp-input" maxlength="1" id="otp2">
+                        <input type="text" class="otp-input" maxlength="1" id="otp3">
+                        <input type="text" class="otp-input" maxlength="1" id="otp4">
+                        <input type="text" class="otp-input" maxlength="1" id="otp5">
+                        <input type="text" class="otp-input" maxlength="1" id="otp6">
+                        <button class="otp-btn" onclick="verifyOTP()">Verify</button>
+                    </div>
+                    <p style="margin-top: 10px; color: #666; font-size: 0.9rem;">
+                        Demo Mode: Check console for OTP or use the OTP shown in alert
+                    </p>
+                </div>
+                <div id="otpVerified" class="otp-verified" style="display: none;">
+                    ✅ Phone Verified Successfully!
+                </div>
+            </div>
+
+            <!-- Delivery Address -->
+            <div class="checkout-section">
+                <div class="section-header">
+                    <div class="step-number">2</div>
+                    <h2 class="section-title">Delivery Address</h2>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" id="fullName" placeholder="Enter your full name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input type="email" id="email" placeholder="Enter your email" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Address *</label>
+                    <textarea id="address" rows="3" placeholder="House No., Building, Street, Area" required></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>City *</label>
+                        <input type="text" id="city" placeholder="City" required>
+                    </div>
+                    <div class="form-group">
+                        <label>State *</label>
+                        <select id="state" required>
+                            <option value="">Select State</option>
+                            <option value="Andhra Pradesh">Andhra Pradesh</option>
+                            <option value="Delhi">Delhi</option>
+                            <option value="Gujarat">Gujarat</option>
+                            <option value="Karnataka">Karnataka</option>
+                            <option value="Maharashtra">Maharashtra</option>
+                            <option value="Rajasthan">Rajasthan</option>
+                            <option value="Tamil Nadu">Tamil Nadu</option>
+                            <option value="Uttar Pradesh">Uttar Pradesh</option>
+                            <option value="West Bengal">West Bengal</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>PIN Code *</label>
+                        <input type="text" id="pincode" placeholder="6-digit PIN" maxlength="6" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Alternate Phone (Optional)</label>
+                        <input type="tel" id="altPhone" placeholder="Alternate number" maxlength="10">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="checkout-section">
+                <div class="section-header">
+                    <div class="step-number">3</div>
+                    <h2 class="section-title">Payment Method</h2>
+                </div>
+                <div class="payment-options">
+                    <label class="payment-option selected" onclick="selectPayment(this, 'cod')">
+                        <input type="radio" name="payment" value="cod" checked>
+                        <div class="payment-radio"></div>
+                        <div class="payment-icon">💵</div>
+                        <div class="payment-info">
+                            <h4>Cash on Delivery</h4>
+                            <p>Pay when you receive your order</p>
+                        </div>
+                    </label>
+                    <label class="payment-option" onclick="selectPayment(this, 'upi')">
+                        <input type="radio" name="payment" value="upi">
+                        <div class="payment-radio"></div>
+                        <div class="payment-icon">📱</div>
+                        <div class="payment-info">
+                            <h4>UPI Payment</h4>
+                            <p>Google Pay, PhonePe, Paytm</p>
+                        </div>
+                    </label>
+                    <label class="payment-option" onclick="selectPayment(this, 'card')">
+                        <input type="radio" name="payment" value="card">
+                        <div class="payment-radio"></div>
+                        <div class="payment-icon">💳</div>
+                        <div class="payment-info">
+                            <h4>Credit/Debit Card</h4>
+                            <p>Visa, Mastercard, RuPay</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Order Summary -->
+        <div class="order-summary">
+            <h2 class="summary-title">Order Summary</h2>
+            <div class="cart-items" id="cartItems">
+                <!-- Cart items will be loaded here -->
+            </div>
+            <div class="summary-row">
+                <span>Subtotal</span>
+                <span id="subtotal">₹0</span>
+            </div>
+            <div class="summary-row">
+                <span>Shipping</span>
+                <span id="shipping">₹0</span>
+            </div>
+            <div class="summary-row">
+                <span>Tax (18% GST)</span>
+                <span id="tax">₹0</span>
+            </div>
+            <div class="summary-row total">
+                <span>Total</span>
+                <span id="total">₹0</span>
+            </div>
+            <button class="place-order-btn" id="placeOrderBtn" onclick="placeOrder()" disabled>
+                Place Order
+            </button>
+            <div class="secure-badge">
+                🔒 Secure Checkout - 100% Safe & Encrypted
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty Cart Message -->
+    <div class="empty-cart" id="emptyCart" style="display: none;">
+        <div class="empty-cart-icon">🛒</div>
+        <h2>Your cart is empty</h2>
+        <p>Add some products to checkout</p>
+        <a href="/" class="continue-shopping" style="margin-top: 20px;">Start Shopping</a>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="success-modal" id="successModal">
+        <div class="success-content">
+            <div class="success-icon">🎉</div>
+            <h2 class="success-title">Order Placed Successfully!</h2>
+            <p class="success-message">Thank you for shopping with AS³Cosmetic</p>
+            <div class="order-id" id="orderId">Order ID: #ORD123456</div>
+            <p style="color: #666; margin-bottom: 20px;">
+                You will receive order confirmation on your phone and email.
+            </p>
+            <a href="/" class="continue-shopping">Continue Shopping</a>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://cosmetics-website-1.onrender.com';
+        let phoneVerified = false;
+        let selectedPayment = 'cod';
+        let currentOTP = '';
+        let cart = [];
+
+        // Load cart from localStorage
+        function loadCart() {
+            const savedCart = localStorage.getItem('cart');
+            if (savedCart) {
+                cart = JSON.parse(savedCart);
+            }
+
+            if (cart.length === 0) {
+                document.getElementById('checkoutContainer').style.display = 'none';
+                document.getElementById('emptyCart').style.display = 'block';
+                return;
+            }
+
+            renderCartItems();
+            updateSummary();
+        }
+
+        function renderCartItems() {
+            const container = document.getElementById('cartItems');
+            container.innerHTML = cart.map(item => `
+                <div class="cart-item">
+                    <img src="${item.image || 'https://via.placeholder.com/70'}" alt="${item.name}">
+                    <div class="item-details">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-qty">Qty: ${item.quantity || 1}</div>
+                    </div>
+                    <div class="item-price">₹${(item.price * (item.quantity || 1)).toLocaleString()}</div>
+                </div>
+            `).join('');
+        }
+
+        function updateSummary() {
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+            const shipping = subtotal > 999 ? 0 : 99;
+            const tax = Math.round(subtotal * 0.18);
+            const total = subtotal + shipping + tax;
+
+            document.getElementById('subtotal').textContent = `₹${subtotal.toLocaleString()}`;
+            document.getElementById('shipping').textContent = shipping === 0 ? 'FREE' : `₹${shipping}`;
+            document.getElementById('tax').textContent = `₹${tax.toLocaleString()}`;
+            document.getElementById('total').textContent = `₹${total.toLocaleString()}`;
+        }
+
+        // OTP Functions
+        async function sendOTP() {
+            const phone = document.getElementById('phoneNumber').value;
+
+            if (phone.length !== 10) {
+                alert('Please enter a valid 10-digit mobile number');
+                return;
+            }
+
+            const btn = document.getElementById('sendOtpBtn');
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+
+            try {
+                const res = await fetch(`${API_URL}/api/auth/send-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    document.getElementById('otpVerifySection').style.display = 'block';
+                    currentOTP = data.demo_otp; // Demo mode
+                    alert(`Demo Mode: Your OTP is ${data.demo_otp}`);
+
+                    // Auto-focus first OTP input
+                    document.getElementById('otp1').focus();
+
+                    // Start countdown
+                    let countdown = 30;
+                    btn.textContent = `Resend in ${countdown}s`;
+                    const timer = setInterval(() => {
+                        countdown--;
+                        btn.textContent = `Resend in ${countdown}s`;
+                        if (countdown <= 0) {
+                            clearInterval(timer);
+                            btn.disabled = false;
+                            btn.textContent = 'Resend OTP';
+                        }
+                    }, 1000);
+                } else {
+                    alert(data.message);
+                    btn.disabled = false;
+                    btn.textContent = 'Send OTP';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to send OTP. Please try again.');
+                btn.disabled = false;
+                btn.textContent = 'Send OTP';
+            }
+        }
+
+        async function verifyOTP() {
+            const otp = ['otp1', 'otp2', 'otp3', 'otp4', 'otp5', 'otp6']
+                .map(id => document.getElementById(id).value)
+                .join('');
+
+            if (otp.length !== 6) {
+                alert('Please enter complete 6-digit OTP');
+                return;
+            }
+
+            const phone = document.getElementById('phoneNumber').value;
+
+            try {
+                const res = await fetch(`${API_URL}/api/auth/verify-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone, otp })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    phoneVerified = true;
+                    document.getElementById('otpVerifySection').style.display = 'none';
+                    document.getElementById('otpVerified').style.display = 'flex';
+                    document.getElementById('phoneNumber').disabled = true;
+                    document.getElementById('sendOtpBtn').style.display = 'none';
+                    checkFormValidity();
+                } else {
+                    alert(data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to verify OTP');
+            }
+        }
+
+        // OTP input auto-focus
+        document.querySelectorAll('.otp-input').forEach((input, index, inputs) => {
+            input.addEventListener('input', (e) => {
+                if (e.target.value && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+        });
+
+        function selectPayment(element, method) {
+            document.querySelectorAll('.payment-option').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedPayment = method;
+        }
+
+        function checkFormValidity() {
+            const name = document.getElementById('fullName').value;
+            const email = document.getElementById('email').value;
+            const address = document.getElementById('address').value;
+            const city = document.getElementById('city').value;
+            const state = document.getElementById('state').value;
+            const pincode = document.getElementById('pincode').value;
+
+            const isValid = phoneVerified && name && email && address && city && state && pincode.length === 6;
+            document.getElementById('placeOrderBtn').disabled = !isValid;
+        }
+
+        // Add input listeners for form validation
+        ['fullName', 'email', 'address', 'city', 'state', 'pincode'].forEach(id => {
+            document.getElementById(id).addEventListener('input', checkFormValidity);
+        });
+
+        async function placeOrder() {
+            const btn = document.getElementById('placeOrderBtn');
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+            const shipping = subtotal > 999 ? 0 : 99;
+            const tax = Math.round(subtotal * 0.18);
+            const total = subtotal + shipping + tax;
+
+            const orderData = {
+                userId: 'guest_' + Date.now(),
+                items: cart.map(item => ({
+                    productId: item._id,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity || 1,
+                    image: item.image
+                })),
+                shippingAddress: {
+                    name: document.getElementById('fullName').value,
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phoneNumber').value,
+                    address: document.getElementById('address').value,
+                    city: document.getElementById('city').value,
+                    state: document.getElementById('state').value,
+                    pincode: document.getElementById('pincode').value,
+                    altPhone: document.getElementById('altPhone').value
+                },
+                paymentMethod: selectedPayment,
+                subtotal,
+                shipping,
+                tax,
+                total
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/api/orders`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    // Clear cart
+                    localStorage.removeItem('cart');
+
+                    // Show success modal
+                    document.getElementById('orderId').textContent = `Order ID: ${data.data.order._id}`;
+                    document.getElementById('successModal').classList.add('active');
+                } else {
+                    alert(data.message || 'Failed to place order');
+                    btn.disabled = false;
+                    btn.textContent = 'Place Order';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to place order. Please try again.');
+                btn.disabled = false;
+                btn.textContent = 'Place Order';
+            }
+        }
+
+        // Initialize
+        loadCart();
+    </script>
+</body>
+
+</html>

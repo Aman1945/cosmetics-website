@@ -7,6 +7,9 @@ const API_URL = window.location.hostname === 'localhost'
 // Admin State
 const state = {
     products: [],
+    orders: [],
+    users: [],
+    analytics: {},
     isAuthenticated: false
 };
 
@@ -15,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initLogin();
     initNavigation();
     initProductManagement();
+    initOrderManagement();
 });
 
 function checkAuth() {
@@ -95,16 +99,48 @@ function initNavigation() {
                 }
             });
 
-            if (item.dataset.view === 'products') {
-                loadProducts();
-            }
+            if (item.dataset.view === 'products') loadProducts();
+            if (item.dataset.view === 'orders') loadOrders();
+            if (item.dataset.view === 'dashboard') loadDashboardData();
         });
     });
 }
 
 // Data Loading
 async function loadDashboardData() {
-    loadProducts();
+    try {
+        const response = await fetch(`${API_URL}/admin/analytics`);
+        const data = await response.json();
+
+        if (data.success) {
+            state.analytics = data.data.summary;
+            document.getElementById('totalRevenue').textContent = `₹${state.analytics.totalRevenue.toLocaleString()}`;
+            document.getElementById('activeOrdersCount').textContent = state.analytics.totalOrders;
+            document.getElementById('totalProductsCount').textContent = 'Loading...';
+            document.getElementById('totalUsersCount').textContent = state.analytics.totalUsers;
+            document.getElementById('pendingOrdersNote').textContent = `${state.analytics.pendingOrders} pending shipping`;
+            document.getElementById('estimatedProfit').textContent = `Est. Profit: ₹${state.analytics.estimatedProfit.toLocaleString()}`;
+
+            renderRecentOrders(data.data.recentOrders);
+            loadProducts(); // Update product count
+        }
+    } catch (error) {
+        console.error('Analytics error:', error);
+    }
+}
+
+function renderRecentOrders(orders) {
+    const tbody = document.getElementById('recentOrdersTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = orders.map(order => `
+        <tr>
+            <td>#${order._id.slice(-6)}</td>
+            <td>${order.shippingAddress.name}</td>
+            <td>${new Date(order.createdAt).toLocaleDateString()}</td>
+            <td><span class="status-badge status-${order.status}">${order.status}</span></td>
+            <td>₹${order.total.toLocaleString()}</td>
+        </tr>
+    `).join('');
 }
 
 async function loadProducts() {
@@ -115,15 +151,31 @@ async function loadProducts() {
         if (data.success) {
             state.products = data.data.products;
             renderProductsTable(state.products);
-            document.getElementById('totalProductsCount').textContent = state.products.length;
+            const countElem = document.getElementById('totalProductsCount');
+            if (countElem) countElem.textContent = state.products.length;
         }
     } catch (error) {
         console.error('Error loading products:', error);
     }
 }
 
+async function loadOrders() {
+    try {
+        const response = await fetch(`${API_URL}/orders`);
+        const data = await response.json();
+
+        if (data.success) {
+            state.orders = data.data.orders;
+            renderOrdersTable(state.orders);
+        }
+    } catch (error) {
+        console.error('Error loading orders:', error);
+    }
+}
+
 function renderProductsTable(products) {
     const tbody = document.getElementById('productsTableBody');
+    if (!tbody) return;
     tbody.innerHTML = products.map(product => `
         <tr>
             <td><img src="${product.images[0]?.url || 'https://via.placeholder.com/50'}" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover;"></td>
@@ -135,6 +187,29 @@ function renderProductsTable(products) {
                 <button class="action-btn edit-btn" onclick="editProduct('${product._id}')">Edit</button>
                 <button class="action-btn delete-btn" onclick="deleteProduct('${product._id}')">Delete</button>
             </td>
+        </tr>
+    `).join('');
+}
+
+function renderOrdersTable(orders) {
+    const tbody = document.getElementById('ordersTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = orders.map(order => `
+        <tr>
+            <td>#${order._id.slice(-6)}</td>
+            <td>${order.shippingAddress.name}<br><small>${order.shippingAddress.phone}</small></td>
+            <td>${order.items.length} items</td>
+            <td>₹${order.total.toLocaleString()}</td>
+            <td>
+                <select onchange="updateOrderStatus('${order._id}', this.value)" class="status-select status-${order.status}">
+                    <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
+                    <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>Processing</option>
+                    <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>Shipped</option>
+                    <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                    <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                </select>
+            </td>
+            <td>${new Date(order.createdAt).toLocaleDateString()}</td>
         </tr>
     `).join('');
 }
@@ -170,19 +245,32 @@ function initProductManagement() {
     });
 }
 
-// REAL Save function calling the API with Auth Token
+function initOrderManagement() {
+    // For now, order management is handled by direct actions
+}
+
+window.updateOrderStatus = async (id, status) => {
+    try {
+        const response = await fetch(`${API_URL}/orders/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+        });
+        const data = await response.json();
+        if (data.success) {
+            alert('Order status updated!');
+            loadDashboardData();
+        }
+    } catch (e) {
+        alert('Update failed');
+    }
+};
+
 async function saveProduct(data, id = null) {
     try {
         const url = id ? `${API_URL}/products/${id}` : `${API_URL}/products`;
         const method = id ? 'PUT' : 'POST';
         const token = localStorage.getItem('adminToken');
-
-        if (!token) {
-            alert('Your session has expired. Please login again.');
-            localStorage.removeItem('isAdmin');
-            location.reload();
-            return;
-        }
 
         const response = await fetch(url, {
             method: method,
@@ -195,13 +283,13 @@ async function saveProduct(data, id = null) {
 
         const result = await response.json();
         if (result.success) {
-            alert('Product saved permanently to Database! ✅');
+            alert('Product saved permanently! ✅');
         } else {
             alert('Error: ' + result.message);
         }
     } catch (e) {
         console.error('Save error:', e);
-        alert('Server connection error. Data not saved.');
+        alert('Server connection error.');
     }
 }
 
@@ -230,7 +318,7 @@ function openModal(product = null) {
     modal.style.display = 'block';
 }
 
-// Make functions global for HTML onclick attributes
+// Global functions
 window.editProduct = (id) => {
     const product = state.products.find(p => p._id === id);
     if (product) openModal(product);
@@ -246,13 +334,11 @@ window.deleteProduct = async (id) => {
             });
             const result = await response.json();
             if (result.success) {
-                alert('Product deleted permanently! ✅');
+                alert('Product deleted! ✅');
                 loadProducts();
-            } else {
-                alert('Error: ' + result.message);
             }
         } catch (e) {
-            alert('Delete failed. Check connection.');
+            alert('Delete failed');
         }
     }
 };

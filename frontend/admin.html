@@ -12,55 +12,76 @@
         rel="stylesheet">
     <link rel="stylesheet" href="/styles/main.css">
     <style>
+        :root {
+            --sidebar-width: 260px;
+            --header-height: 70px;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: #1a1a2e;
+            overflow-x: hidden;
+        }
+
         .admin-container {
             display: flex;
             min-height: 100vh;
-            padding-top: 80px;
         }
 
+        /* Sidebar */
         .sidebar {
-            width: 260px;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
+            width: var(--sidebar-width);
+            background: white;
             border-right: 1px solid rgba(0, 0, 0, 0.05);
-            padding: 2rem;
             position: fixed;
-            height: calc(100vh - 80px);
-            overflow-y: auto;
+            height: 100vh;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
         }
 
-        .main-content {
-            flex: 1;
-            margin-left: 260px;
-            padding: 2rem;
-            background: #f8f9fa;
+        .sidebar .logo {
+            font-size: 1.5rem;
+            margin-bottom: 3rem;
         }
 
         .menu-item {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            color: var(--text-dark);
+            gap: 12px;
+            padding: 12px 16px;
+            color: var(--gray);
             text-decoration: none;
-            border-radius: var(--radius-md);
-            transition: all 0.3s ease;
-            margin-bottom: 0.5rem;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            transition: all 0.3s;
             font-weight: 500;
         }
 
         .menu-item:hover,
         .menu-item.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 4px 15px rgba(252, 39, 121, 0.3);
+            background: rgba(252, 39, 121, 0.05);
+            color: var(--primary);
         }
 
+        .menu-item span {
+            font-size: 1.2rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 2rem 3rem;
+        }
+
+        /* Stats Cards */
         .dashboard-stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 1.5rem;
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
         }
 
         .stat-card {
@@ -68,69 +89,90 @@
             padding: 1.5rem;
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-sm);
-            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
         }
 
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin: 0.5rem 0;
+        .stat-card:hover {
+            transform: translateY(-5px);
         }
 
         .stat-label {
             color: var(--gray);
             font-size: 0.9rem;
+            margin-bottom: 0.5rem;
         }
 
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Tables */
         .data-table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .data-table th,
-        .data-table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            margin-top: 1rem;
         }
 
         .data-table th {
-            background: #f8f9fa;
+            text-align: left;
+            padding: 12px;
+            color: var(--gray);
             font-weight: 600;
-            color: var(--text-dark);
+            border-bottom: 2px solid #f8f9fa;
         }
 
-        .action-btn {
-            padding: 0.5rem;
-            border-radius: var(--radius-sm);
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s;
+        .data-table td {
+            padding: 16px 12px;
+            border-bottom: 1px solid #f8f9fa;
         }
 
-        .edit-btn {
-            background: rgba(108, 92, 231, 0.1);
-            color: var(--secondary);
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: capitalize;
         }
 
-        .delete-btn {
-            background: rgba(252, 39, 121, 0.1);
-            color: var(--primary);
+        .status-pending {
+            background: #fff8e1;
+            color: #f57c00;
         }
 
+        .status-processing {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status-shipped {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .status-delivered {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-cancelled {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .status-select {
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-size: 0.85rem;
+        }
+
+        /* Login Overlay */
         .login-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(5px);
+            inset: 0;
+            background: white;
             z-index: 2000;
             display: flex;
             align-items: center;
@@ -138,14 +180,13 @@
         }
 
         .login-card {
-            background: white;
-            padding: 2.5rem;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-lg);
             width: 100%;
             max-width: 400px;
+            padding: 2.5rem;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
             text-align: center;
-            border: 1px solid rgba(252, 39, 121, 0.1);
         }
 
         /* Modal Styles */
@@ -164,14 +205,12 @@
 
         .modal-content {
             background-color: #fefefe;
-            margin: 10% auto;
+            margin: 5% auto;
             padding: 2rem;
-            border: 1px solid #888;
-            width: 80%;
+            width: 90%;
             max-width: 600px;
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-lg);
-            animation: slideIn 0.3s ease;
         }
 
         .form-row {
@@ -180,7 +219,6 @@
             gap: 1rem;
         }
 
-        /* Admin Responsive */
         @media (max-width: 968px) {
             .sidebar {
                 width: 70px;
@@ -188,84 +226,23 @@
             }
 
             .sidebar .menu-item span {
-                font-size: 1.5rem;
                 margin: 0 auto;
             }
 
-            .sidebar .menu-item {
-                padding: 1rem;
-                justify-content: center;
-            }
-
-            .sidebar .menu-item span+text,
-            .sidebar .menu-item {
-                font-size: 0;
+            .sidebar .menu-item text {
+                display: none;
             }
 
             .main-content {
                 margin-left: 70px;
-                padding: 1rem;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .admin-container {
-                flex-direction: column;
-            }
-
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: static;
-                display: flex;
-                overflow-x: auto;
-                padding: 0.5rem;
-                border-right: none;
-                border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            }
-
-            .sidebar .menu-item {
-                margin-bottom: 0;
-                margin-right: 0.5rem;
-                white-space: nowrap;
-                font-size: 0.9rem;
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-
-            .dashboard-stats {
-                grid-template-columns: 1fr;
-            }
-
-            .data-table {
-                display: block;
-                overflow-x: auto;
+                padding: 1.5rem;
             }
         }
     </style>
 </head>
 
 <body>
-    <!-- Navigation -->
-    <nav class="navbar" id="navbar">
-        <div class="container nav-container">
-            <div class="nav-brand">
-                <a href="/" style="text-decoration: none;">
-                    <h1 class="logo">AS<sup>3</sup>Cosmetic <span
-                            style="font-size: 0.5em; vertical-align: middle; background: var(--primary); color: white; padding: 2px 6px; border-radius: 4px;">ADMIN</span>
-                    </h1>
-                </a>
-            </div>
-            <div class="nav-actions">
-                <span id="adminName" style="margin-right: 1rem; font-weight: 500;">Admin</span>
-                <button class="btn btn-secondary" id="logoutBtn">Logout</button>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Login Overlay -->
+    <!-- Login Section -->
     <div class="login-overlay" id="loginOverlay">
         <div class="login-card">
             <h2 class="section-title">Admin Login</h2>
@@ -287,21 +264,29 @@
     <div class="admin-container" id="adminContainer" style="display: none;">
         <!-- Sidebar -->
         <aside class="sidebar">
+            <div class="nav-brand">
+                <a href="/" style="text-decoration: none;">
+                    <h1 class="logo">AS<sup>3</sup>Cosmetic <span
+                            style="font-size: 0.5em; vertical-align: middle; background: var(--primary); color: white; padding: 2px 6px; border-radius: 4px;">ADMIN</span>
+                    </h1>
+                </a>
+            </div>
+
             <a href="#" class="menu-item active" data-view="dashboard">
-                <span>📊</span> Dashboard
+                <span>📊</span> <text>Dashboard</text>
             </a>
             <a href="#" class="menu-item" data-view="products">
-                <span>💄</span> Products
+                <span>🛍️</span> <text>Products</text>
             </a>
             <a href="#" class="menu-item" data-view="orders">
-                <span>📦</span> Orders
+                <span>📦</span> <text>Orders</text>
             </a>
             <a href="#" class="menu-item" data-view="users">
-                <span>👥</span> Users
+                <span>👥</span> <text>Users</text>
             </a>
-            <a href="#" class="menu-item" data-view="settings">
-                <span>⚙️</span> Settings
-            </a>
+            <div style="margin-top: auto;">
+                <button class="btn btn-secondary btn-block" id="logoutBtn">Logout</button>
+            </div>
         </aside>
 
         <!-- Main Content -->
@@ -311,24 +296,24 @@
                 <h2 class="section-title" style="margin-bottom: 2rem;">Overview</h2>
                 <div class="dashboard-stats">
                     <div class="stat-card">
-                        <div class="stat-label">Total Sales</div>
-                        <div class="stat-value">₹1,24,500</div>
-                        <div style="color: #2ecc71;">↑ 12% from last month</div>
+                        <div class="stat-label">Total Revenue</div>
+                        <div class="stat-value" id="totalRevenue">₹0</div>
+                        <div style="color: #2ecc71;" id="estimatedProfit">Est. Profit: ₹0</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Active Orders</div>
-                        <div class="stat-value">45</div>
-                        <div style="color: var(--secondary);">15 pending shipping</div>
+                        <div class="stat-label">Total Orders</div>
+                        <div class="stat-value" id="activeOrdersCount">0</div>
+                        <div style="color: var(--secondary);" id="pendingOrdersNote">0 pending</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-label">Total Products</div>
                         <div class="stat-value" id="totalProductsCount">0</div>
-                        <div style="color: var(--primary);">+3 new this week</div>
+                        <div style="color: var(--primary);">Live in Store</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Customers</div>
-                        <div class="stat-value">1,250</div>
-                        <div style="color: #2ecc71;">↑ 8% growth</div>
+                        <div class="stat-label">Total Customers</div>
+                        <div class="stat-value" id="totalUsersCount">0</div>
+                        <div style="color: #2ecc71;">Registered Users</div>
                     </div>
                 </div>
 
@@ -345,34 +330,8 @@
                                 <th>Total</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>#ORD-2026-001</td>
-                                <td>Aman Siddiqui</td>
-                                <td>Jan 20, 2026</td>
-                                <td><span
-                                        style="background: rgba(46, 204, 113, 0.1); color: #2ecc71; padding: 4px 8px; border-radius: 4px;">Delivered</span>
-                                </td>
-                                <td>₹2,499</td>
-                            </tr>
-                            <tr>
-                                <td>#ORD-2026-002</td>
-                                <td>Priya Sharma</td>
-                                <td>Jan 19, 2026</td>
-                                <td><span
-                                        style="background: rgba(241, 196, 15, 0.1); color: #f1c40f; padding: 4px 8px; border-radius: 4px;">Processing</span>
-                                </td>
-                                <td>₹1,850</td>
-                            </tr>
-                            <tr>
-                                <td>#ORD-2026-003</td>
-                                <td>Rahul Verma</td>
-                                <td>Jan 18, 2026</td>
-                                <td><span
-                                        style="background: rgba(252, 39, 121, 0.1); color: #fc2779; padding: 4px 8px; border-radius: 4px;">Pending</span>
-                                </td>
-                                <td>₹4,200</td>
-                            </tr>
+                        <tbody id="recentOrdersTableBody">
+                            <!-- Recent orders loaded here -->
                         </tbody>
                     </table>
                 </div>
@@ -382,12 +341,11 @@
             <div id="productsView" class="view-section" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                     <h2 class="section-title">Product Management</h2>
-                    <button class="btn btn-primary" id="addProductBtn">+ Add New Product</button>
+                    <button class="btn btn-primary" id="addProductBtn">+ Add New</button>
                 </div>
-
                 <div
                     style="background: white; padding: 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
-                    <table class="data-table" id="productsTable">
+                    <table class="data-table">
                         <thead>
                             <tr>
                                 <th>Image</th>
@@ -398,22 +356,36 @@
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="productsTableBody">
-                            <!-- Products will be loaded here -->
-                        </tbody>
+                        <tbody id="productsTableBody"></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Other views placeholders -->
+            <!-- Orders View -->
             <div id="ordersView" class="view-section" style="display: none;">
-                <h2>Orders Management (Coming Soon)</h2>
+                <h2 class="section-title" style="margin-bottom: 2rem;">Order Management</h2>
+                <div
+                    style="background: white; padding: 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody"></tbody>
+                    </table>
+                </div>
             </div>
+
+            <!-- Users View -->
             <div id="usersView" class="view-section" style="display: none;">
-                <h2>User Management (Coming Soon)</h2>
-            </div>
-            <div id="settingsView" class="view-section" style="display: none;">
-                <h2>Settings (Coming Soon)</h2>
+                <h2 class="section-title">Registered Customers</h2>
+                <div id="usersList" style="margin-top: 2rem;">Coming Soon - User list integration</div>
             </div>
         </main>
     </div>
@@ -422,7 +394,7 @@
     <div id="productModal" class="modal">
         <div class="modal-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h3 id="modalTitle">Add New Product</h3>
+                <h3 id="modalTitle">Product Details</h3>
                 <span class="close-btn" id="closeProductModal">&times;</span>
             </div>
             <form id="productForm">
@@ -444,14 +416,14 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Brand</label>
-                        <input type="text" class="form-input" id="productBrand" value="AS³Cosmetic" required>
+                        <label>Price (₹)</label>
+                        <input type="number" class="form-input" id="productPrice" required>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Price (₹)</label>
-                        <input type="number" class="form-input" id="productPrice" required>
+                        <label>Brand</label>
+                        <input type="text" class="form-input" id="productBrand" value="AS³Cosmetic" required>
                     </div>
                     <div class="form-group">
                         <label>Stock</label>
@@ -459,20 +431,19 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Description</label>
-                    <textarea class="form-input" id="productDescription" rows="3"></textarea>
-                </div>
-                <div class="form-group">
                     <label>Image URL</label>
-                    <input type="url" class="form-input" id="productImage" placeholder="https://example.com/image.jpg"
-                        required>
+                    <input type="url" class="form-input" id="productImage" required>
                 </div>
                 <div class="form-group">
-                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                    <label>Description</label>
+                    <textarea class="form-input" id="productDescription" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
                         <input type="checkbox" id="productFeatured"> Featured Product
                     </label>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block">Save Product</button>
+                <button type="submit" class="btn btn-primary btn-block">Save to Database</button>
             </form>
         </div>
     </div>

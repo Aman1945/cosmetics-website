@@ -2,7 +2,10 @@ import * as THREE from 'three';
 import { gsap } from 'gsap';
 
 // API Configuration
-const API_URL = 'http://localhost:5000/api';
+const API_URL = window.location.hostname === 'localhost'
+    ? 'http://localhost:5000/api'
+    : 'https://cosmetics-website-1.onrender.com/api';
+
 let authToken = localStorage.getItem('authToken');
 
 // State Management
@@ -10,12 +13,14 @@ const state = {
     cart: JSON.parse(localStorage.getItem('cart')) || [],
     user: null,
     products: [],
-    currentCategory: 'all'
+    currentCategory: 'all',
+    searchQuery: ''
 };
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
+    initSearch();
     initViewAll();
     initLoginModal();
     init3DHero();
@@ -62,6 +67,87 @@ function initNavigation() {
     if (mobileToggle) {
         mobileToggle.addEventListener('click', () => {
             navMenu.classList.toggle('active');
+        });
+    }
+}
+
+// Search Functionality
+function initSearch() {
+    const searchBtn = document.getElementById('searchBtn');
+
+    // Create Search Overlay if not exists
+    if (!document.getElementById('searchOverlay')) {
+        const overlay = document.createElement('div');
+        overlay.id = 'searchOverlay';
+        overlay.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.95); z-index: 2500;
+            display: none; align-items: center; justify-content: center;
+            flex-direction: column;
+        `;
+        overlay.innerHTML = `
+            <div style="position: relative; width: 80%; max-width: 600px;">
+                <input type="text" id="searchInput" placeholder="Search for products..." 
+                    style="width: 100%; padding: 20px; font-size: 1.5rem; border: none; border-bottom: 2px solid var(--primary); background: transparent; outline: none;">
+                <button id="closeSearch" style="position: absolute; right: 0; top: -40px; background: none; border: none; font-size: 2rem; cursor: pointer;">&times;</button>
+            </div>
+            <div id="searchResults" style="margin-top: 2rem; width: 80%; max-width: 800px; max-height: 60vh; overflow-y: auto;"></div>
+        `;
+        document.body.appendChild(overlay);
+
+        // Event Listeners for Search
+        const searchInput = document.getElementById('searchInput');
+        const closeSearch = document.getElementById('closeSearch');
+        const searchResults = document.getElementById('searchResults');
+
+        searchBtn?.addEventListener('click', () => {
+            overlay.style.display = 'flex';
+            searchInput.focus();
+            gsap.from(overlay, { opacity: 0, duration: 0.3 });
+        });
+
+        closeSearch?.addEventListener('click', () => {
+            overlay.style.display = 'none';
+        });
+
+        // Live Search Logic
+        searchInput?.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            if (query.length < 2) {
+                searchResults.innerHTML = '';
+                return;
+            }
+
+            const filtered = state.products.filter(p =>
+                p.name.toLowerCase().includes(query) ||
+                p.category.toLowerCase().includes(query)
+            );
+
+            if (filtered.length === 0) {
+                searchResults.innerHTML = '<p style="text-align: center; color: var(--gray);">No products found.</p>';
+                return;
+            }
+
+            searchResults.innerHTML = `
+                <div class="products-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+                    ${filtered.map(product => `
+                        <div class="product-card" onclick="window.location.hash = 'products'; document.getElementById('searchOverlay').style.display='none';">
+                           <div class="product-image" style="height: 200px;">
+                                <img src="${product.images[0]?.url || 'https://via.placeholder.com/300'}" alt="${product.name}">
+                           </div>
+                           <div class="product-info">
+                                <h5>${product.name}</h5>
+                                <div class="product-price">₹${product.price}</div>
+                           </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        });
+
+        // Close on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') overlay.style.display = 'none';
         });
     }
 }

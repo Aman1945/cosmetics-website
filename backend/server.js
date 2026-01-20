@@ -25,9 +25,17 @@ app.use(express.urlencoded({ extended: true }));
 // Database Connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://siddquicosmetic_db_user:dh1Uq9gX1u4V0h5e@cosmetic.sdj1hwa.mongodb.net/cosmetics-db';
 
-mongoose.connect(MONGODB_URI)
+mongoose.connect(MONGODB_URI, {
+    serverSelectionTimeoutMS: 5000, // 5 second mein fail ho jaye agar connect na ho
+    bufferCommands: false, // Wait mat karo agar connection nahi hai
+})
     .then(() => console.log('✅ Connected to MongoDB Atlas'))
-    .catch(err => console.error('❌ MongoDB Connection Error:', err));
+    .catch(err => {
+        console.error('❌ MongoDB Connection Error:', err.message);
+        if (err.message.includes('authentication failed')) {
+            console.error('👉 Kripya apna MongoDB Password check karein Atlas mein.');
+        }
+    });
 
 // Routes
 app.use('/api/products', productRoutes);

@@ -34,6 +34,67 @@ mongoose.connect(MONGODB_URI)
     })
     .catch(err => console.error('❌ MongoDB Connection Error:', err.message));
 
+// ========== OTP SYSTEM ==========
+const otpStore = {}; // In-memory OTP storage (for demo - use Redis in production)
+
+function generateOTP() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+app.post('/api/auth/send-otp', (req, res) => {
+    const { phone } = req.body;
+
+    if (!phone || phone.length !== 10) {
+        return res.status(400).json({ success: false, message: 'Valid 10-digit phone number required' });
+    }
+
+    const otp = generateOTP();
+    otpStore[phone] = {
+        otp,
+        expires: Date.now() + 5 * 60 * 1000, // 5 minutes
+        verified: false
+    };
+
+    console.log(`📱 OTP for ${phone}: ${otp}`); // Demo mode - log OTP
+
+    res.json({
+        success: true,
+        message: 'OTP sent successfully!',
+        demo_otp: otp // Remove in production
+    });
+});
+
+app.post('/api/auth/verify-otp', (req, res) => {
+    const { phone, otp } = req.body;
+
+    if (!phone || !otp) {
+        return res.status(400).json({ success: false, message: 'Phone and OTP required' });
+    }
+
+    const stored = otpStore[phone];
+
+    if (!stored) {
+        return res.status(400).json({ success: false, message: 'OTP not found. Request a new OTP.' });
+    }
+
+    if (Date.now() > stored.expires) {
+        delete otpStore[phone];
+        return res.status(400).json({ success: false, message: 'OTP expired. Request a new one.' });
+    }
+
+    if (stored.otp !== otp) {
+        return res.status(400).json({ success: false, message: 'Invalid OTP. Please try again.' });
+    }
+
+    // Mark as verified
+    stored.verified = true;
+
+    res.json({
+        success: true,
+        message: 'OTP verified successfully!'
+    });
+});
+
 // ========== AUTH API ==========
 
 // Register User

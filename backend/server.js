@@ -1,5 +1,4 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
@@ -16,7 +15,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:4200',
+    origin: process.env.FRONTEND_URL || '*',
     credentials: true
 }));
 app.use(express.json());
@@ -29,7 +28,21 @@ app.use('/api/orders', orderRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'OK', message: 'Cosmetics API is running' });
+    res.json({ status: 'OK', message: 'Cosmetics API is running', timestamp: new Date() });
+});
+
+// Root route
+app.get('/', (req, res) => {
+    res.json({
+        message: 'LuxeGlow Cosmetics API',
+        version: '1.0.0',
+        endpoints: {
+            health: '/api/health',
+            products: '/api/products',
+            auth: '/api/auth',
+            orders: '/api/orders'
+        }
+    });
 });
 
 // Error handling middleware
@@ -42,21 +55,13 @@ app.use((err, req, res, next) => {
     });
 });
 
-// MongoDB connection
+// Start server without MongoDB for now
 const PORT = process.env.PORT || 5000;
-const MONGODB_URI = process.env.MONGODB_URI;
 
-mongoose.connect(MONGODB_URI)
-    .then(() => {
-        console.log('✅ Connected to MongoDB');
-        app.listen(PORT, () => {
-            console.log(`🚀 Server running on port ${PORT}`);
-            console.log(`📍 Environment: ${process.env.NODE_ENV}`);
-        });
-    })
-    .catch((error) => {
-        console.error('❌ MongoDB connection error:', error);
-        process.exit(1);
-    });
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`⚠️  Running without database - using in-memory storage`);
+});
 
 module.exports = app;

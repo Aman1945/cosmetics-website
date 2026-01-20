@@ -170,6 +170,28 @@ filterBtns.forEach(btn => {
     });
 });
 
+// Login Logic - Redirect to Auth Page
+function initLoginModal() {
+    const loginBtn = document.getElementById('loginBtn');
+
+    if (loginBtn) {
+        loginBtn.addEventListener('click', () => {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user) {
+                // If already logged in, show a simple dropdown or logout option
+                if (confirm('Logout from ' + user.name + '?')) {
+                    localStorage.removeItem('user');
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('isAdmin');
+                    window.location.reload();
+                }
+            } else {
+                window.location.href = '/auth.html';
+            }
+        });
+    }
+}
+
 // Cart Functions
 function initCart() {
     const cartBtn = document.getElementById('cartBtn');

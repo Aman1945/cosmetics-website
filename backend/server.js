@@ -34,41 +34,66 @@ mongoose.connect(MONGODB_URI)
     })
     .catch(err => console.error('❌ MongoDB Connection Error:', err.message));
 
-const otpStore = {};
-
-// ========== OTP SYSTEM ==========
-function generateOTP() { return Math.floor(100000 + Math.random() * 900000).toString(); }
-
-app.post('/api/auth/send-otp', (req, res) => {
-    const { phone } = req.body;
-    if (!phone) return res.status(400).json({ success: false, message: 'Phone required' });
-    const otp = generateOTP();
-    otpStore[phone] = { otp, expires: Date.now() + 5 * 60 * 1000, verified: false };
-    console.log(`📱 OTP for ${phone}: ${otp}`);
-    res.json({ success: true, message: 'OTP sent!', demo_otp: otp });
-});
-
-app.post('/api/auth/verify-otp', (req, res) => {
-    const { phone, otp } = req.body;
-    const stored = otpStore[phone];
-    if (!stored || stored.otp !== otp) return res.status(400).json({ success: false, message: 'Invalid OTP' });
-    stored.verified = true;
-    res.json({ success: true, message: 'Verified' });
-});
-
 // ========== AUTH API ==========
+
+// Register User
+app.post('/api/auth/register', async (req, res) => {
+    try {
+        const { name, email, phone, password } = req.body;
+
+        // Basic Validation
+        if (!name || !email || !phone || !password) {
+            return res.status(400).json({ success: false, message: 'All fields are required' });
+        }
+
+        // Check if user exists
+        const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
+        if (existingUser) {
+            return res.status(400).json({ success: false, message: 'User with this email or phone already exists' });
+        }
+
+        const newUser = await User.create({ name, email, phone, password, role: 'user' });
+
+        res.status(201).json({
+            success: true,
+            message: 'Registration successful!',
+            data: {
+                user: { id: newUser._id, name: newUser.name, email: newUser.email, role: newUser.role },
+                token: 'user_token_' + newUser._id
+            }
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+// Login User
 app.post('/api/auth/login', async (req, res) => {
     const { email, password } = req.body;
     try {
+        // Hardcoded Admin
         if (email === 'admin@as3cosmetic.com' && password === 'admin123') {
             let admin = await User.findOne({ email });
             if (!admin) admin = await User.create({ name: 'Admin', email, phone: '0000000000', password, role: 'admin' });
             return res.json({ success: true, data: { user: admin, token: 'admin_token_' + admin._id } });
         }
+
         const user = await User.findOne({ email, password });
-        if (!user) return res.status(401).json({ success: false, message: 'Invalid login' });
-        res.json({ success: true, data: { user, token: 'user_token_' + user._id } });
-    } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+        if (!user) {
+            return res.status(401).json({ success: false, message: 'Invalid email or password' });
+        }
+
+        res.json({
+            success: true,
+            message: 'Login successful!',
+            data: {
+                user: { id: user._id, name: user.name, email: user.email, role: user.role, phone: user.phone },
+                token: 'user_token_' + user._id
+            }
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
+    }
 });
 
 // ========== PRODUCTS API ==========
@@ -119,7 +144,7 @@ app.get('/api/admin/analytics', async (req, res) => {
     } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
 
-app.get('/', (req, res) => res.json({ message: 'API Running' }));
+app.get('/', (req, res) => res.json({ message: 'AS³Cosmetic API Running' }));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server on ${PORT}`));

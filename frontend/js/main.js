@@ -166,11 +166,11 @@ function updateCartBadge() {
 function initLoginModal() {
     document.getElementById('loginBtn')?.addEventListener('click', () => {
         if (state.user) {
-            if (confirm(`Hello ${state.user.name}, wish to Logout?`)) {
-                localStorage.clear();
-                window.location.reload();
-            }
-        } else { window.location.href = '/auth.html'; }
+            // Redirect to profile page for logged-in users
+            window.location.href = '/profile.html';
+        } else {
+            window.location.href = '/auth.html';
+        }
     });
 }
 

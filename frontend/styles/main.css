@@ -76,8 +76,8 @@ html {
 
 body {
   font-family: var(--font-body);
-  background: var(--dark);
-  color: var(--white);
+  background: var(--white);
+  color: var(--dark);
   line-height: 1.6;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
@@ -187,15 +187,14 @@ img {
 }
 
 .btn-secondary {
-  background: var(--glass-bg);
-  color: var(--white);
-  border: 2px solid var(--glass-border);
-  backdrop-filter: blur(10px);
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: var(--primary);
+  color: var(--white);
   transform: translateY(-2px);
 }
 
@@ -214,17 +213,18 @@ img {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  background: var(--off-white);
+  border: 1px solid #eee;
   border-radius: var(--radius-full);
   cursor: pointer;
   transition: all var(--transition-normal);
   position: relative;
-  backdrop-filter: blur(10px);
+  color: var(--dark);
 }
 
 .icon-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--primary);
+  color: var(--white);
   transform: scale(1.1);
 }
 
@@ -236,15 +236,15 @@ img {
   right: 0;
   z-index: 1000;
   padding: var(--spacing-md) 0;
-  background: var(--glass-bg);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid #eee;
   transition: all var(--transition-normal);
 }
 
 .navbar.scrolled {
   padding: var(--spacing-sm) 0;
-  background: rgba(15, 15, 30, 0.95);
+  background: rgba(255, 255, 255, 0.98);
   box-shadow: var(--shadow-md);
 }
 
@@ -273,7 +273,7 @@ img {
 .nav-link {
   position: relative;
   padding: 0.5rem 0;
-  color: var(--gray-light);
+  color: var(--gray);
   font-weight: 500;
   transition: var(--transition-fast);
 }
@@ -291,7 +291,7 @@ img {
 
 .nav-link:hover,
 .nav-link.active {
-  color: var(--white);
+  color: var(--primary);
 }
 
 .nav-link:hover::after,
@@ -333,7 +333,7 @@ img {
 .mobile-menu-toggle span {
   width: 25px;
   height: 2px;
-  background: var(--white);
+  background: var(--dark);
   transition: var(--transition-fast);
 }
 
@@ -372,14 +372,13 @@ img {
 .hero-tag {
   display: inline-block;
   padding: 0.5rem 1rem;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  background: rgba(252, 39, 121, 0.1);
+  border: 1px solid rgba(252, 39, 121, 0.2);
   border-radius: var(--radius-full);
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--primary);
   margin-bottom: var(--spacing-md);
-  backdrop-filter: blur(10px);
 }
 
 .hero-title {
@@ -476,7 +475,7 @@ img {
 .floating-card p {
   margin: 0;
   font-weight: 600;
-  color: var(--white);
+  color: var(--dark);
 }
 
 /* Sections */
@@ -492,12 +491,12 @@ img {
 .section-tag {
   display: inline-block;
   padding: 0.5rem 1rem;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  background: rgba(252, 39, 121, 0.1);
+  border: 1px solid rgba(252, 39, 121, 0.2);
   border-radius: var(--radius-full);
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--primary);
   margin-bottom: var(--spacing-md);
   backdrop-filter: blur(10px);
 }
@@ -531,8 +530,8 @@ img {
 .offer-card {
   position: relative;
   padding: var(--spacing-xl);
-  background: var(--dark-light);
-  border: 1px solid var(--dark-lighter);
+  background: var(--off-white);
+  border: 1px solid #eee;
   border-radius: var(--radius-xl);
   overflow: hidden;
   transition: all var(--transition-normal);
@@ -599,12 +598,12 @@ img {
 .offer-card h4 {
   font-size: 1.5rem;
   margin-bottom: var(--spacing-sm);
-  color: var(--white);
+  color: var(--dark);
 }
 
 .offer-card p {
   margin-bottom: var(--spacing-md);
-  color: var(--gray-light);
+  color: var(--gray);
 }
 
 .offer-visual {
@@ -647,14 +646,13 @@ img {
 
 .filter-btn {
   padding: 0.75rem 1.5rem;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  background: var(--off-white);
+  border: 1px solid #ddd;
   border-radius: var(--radius-full);
-  color: var(--gray-light);
+  color: var(--gray);
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-normal);
-  backdrop-filter: blur(10px);
 }
 
 .filter-btn:hover,
@@ -673,12 +671,13 @@ img {
 }
 
 .product-card {
-  background: var(--dark-light);
-  border: 1px solid var(--dark-lighter);
+  background: var(--white);
+  border: 1px solid #eee;
   border-radius: var(--radius-lg);
   overflow: hidden;
   transition: all var(--transition-normal);
   cursor: pointer;
+  box-shadow: var(--shadow-sm);
 }
 
 .product-card:hover {
@@ -691,7 +690,7 @@ img {
   position: relative;
   width: 100%;
   height: 300px;
-  background: var(--dark-lighter);
+  background: var(--off-white);
   overflow: hidden;
 }
 
@@ -733,7 +732,7 @@ img {
 .product-name {
   font-size: 1.25rem;
   margin-bottom: 0.5rem;
-  color: var(--white);
+  color: var(--dark);
 }
 
 .product-rating {
@@ -812,16 +811,16 @@ img {
 .feature {
   text-align: center;
   padding: var(--spacing-md);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  background: var(--off-white);
+  border: 1px solid #eee;
   border-radius: var(--radius-lg);
-  backdrop-filter: blur(10px);
   transition: all var(--transition-normal);
 }
 
 .feature:hover {
   transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--white);
+  box-shadow: var(--shadow-md);
 }
 
 .feature-icon {
@@ -831,7 +830,7 @@ img {
 
 .feature h4 {
   margin-bottom: 0.5rem;
-  color: var(--white);
+  color: var(--dark);
 }
 
 .feature p {
@@ -866,17 +865,17 @@ img {
 
 .contact-item {
   padding: var(--spacing-md);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  background: var(--off-white);
+  border: 1px solid #eee;
   border-radius: var(--radius-lg);
-  backdrop-filter: blur(10px);
   margin-bottom: var(--spacing-md);
   transition: all var(--transition-normal);
 }
 
 .contact-item:hover {
   transform: translateX(5px);
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--white);
+  box-shadow: var(--shadow-md);
 }
 
 .contact-icon {
@@ -886,12 +885,12 @@ img {
 
 .contact-item h4 {
   margin-bottom: 0.5rem;
-  color: var(--white);
+  color: var(--dark);
 }
 
 .contact-item p {
   margin: 0;
-  color: var(--gray-light);
+  color: var(--gray);
 }
 
 /* Forms */
@@ -902,20 +901,20 @@ img {
 .form-input {
   width: 100%;
   padding: 1rem;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  background: var(--off-white);
+  border: 1px solid #ddd;
   border-radius: var(--radius-md);
-  color: var(--white);
+  color: var(--dark);
   font-family: var(--font-body);
   font-size: 1rem;
   transition: all var(--transition-normal);
-  backdrop-filter: blur(10px);
 }
 
 .form-input:focus {
   outline: none;
   border-color: var(--primary);
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--white);
+  box-shadow: 0 0 0 3px rgba(252, 39, 121, 0.1);
 }
 
 .form-input::placeholder {
@@ -929,10 +928,11 @@ textarea.form-input {
 
 /* Footer */
 .footer {
-  background: var(--dark-light);
+  background: var(--dark);
   border-top: 1px solid var(--dark-lighter);
   padding: var(--spacing-2xl) 0 var(--spacing-lg);
   margin-top: var(--spacing-2xl);
+  color: var(--white);
 }
 
 .footer-grid {

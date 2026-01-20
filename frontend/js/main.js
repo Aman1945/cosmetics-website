@@ -16,6 +16,8 @@ const state = {
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
+    initViewAll();
+    initLoginModal();
     init3DHero();
     loadProducts();
     initCart();

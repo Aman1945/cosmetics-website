@@ -62,6 +62,21 @@ exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
+        // Auto-create admin for first-time use if it matches demo credentials
+        if (email === 'admin@luxeglow.com' && password === 'admin123') {
+            let admin = await User.findOne({ email });
+            if (!admin) {
+                console.log('Creating initial admin user...');
+                admin = new User({
+                    name: 'Admin User',
+                    email: 'admin@luxeglow.com',
+                    password: 'admin123',
+                    role: 'admin'
+                });
+                await admin.save();
+            }
+        }
+
         // Find user with password field
         const user = await User.findOne({ email }).select('+password');
 
@@ -110,7 +125,7 @@ exports.login = async (req, res) => {
         console.error('Login error:', error);
         res.status(500).json({
             success: false,
-            message: 'Error logging in',
+            message: 'Database Connection Error. Please ensure MongoDB whitelist (0.0.0.0/0) is enabled in Atlas.',
             error: error.message
         });
     }

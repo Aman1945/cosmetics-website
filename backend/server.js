@@ -22,58 +22,35 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Database Connection
+// Database Connection and Server Start
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://siddquicosmetic_db_user:K-QCjpar3_fx8c_@cosmetic.sdj1hwa.mongodb.net/cosmetics-db';
 
-mongoose.connect(MONGODB_URI, {
-    serverSelectionTimeoutMS: 5000, // 5 second mein fail ho jaye agar connect na ho
-    bufferCommands: false, // Wait mat karo agar connection nahi hai
-})
-    .then(() => console.log('✅ Connected to MongoDB Atlas'))
-    .catch(err => {
+const startServer = async () => {
+    try {
+        await mongoose.connect(MONGODB_URI, {
+            serverSelectionTimeoutMS: 5000,
+        });
+        console.log('✅ Connected to MongoDB Atlas');
+
+        const PORT = process.env.PORT || 5000;
+        app.listen(PORT, () => {
+            console.log(`🚀 Server running on port ${PORT}`);
+        });
+    } catch (err) {
         console.error('❌ MongoDB Connection Error:', err.message);
-        if (err.message.includes('authentication failed')) {
-            console.error('👉 Kripya apna MongoDB Password check karein Atlas mein.');
-        }
-    });
+        console.error('👉 Check list:');
+        console.error('1. MongoDB Password (URL encoding might be needed)');
+        console.error('2. Database User name (must match siddquicosmetic_db_user)');
+        console.error('3. Network Access (0.0.0.0/0 allowed)');
 
-// Routes
-app.use('/api/products', productRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/orders', orderRoutes);
+        // Start server anyway so health checks don't fail, but log the error
+        const PORT = process.env.PORT || 5000;
+        app.listen(PORT, () => {
+            console.log(`🚀 Server running on port ${PORT} (WITHOUT DATABASE)`);
+        });
+    }
+};
 
-// Health check route
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'OK', message: 'Cosmetics API is running', timestamp: new Date() });
-});
-
-// Root route
-app.get('/', (req, res) => {
-    res.json({
-        message: 'LuxeGlow Cosmetics API',
-        version: '1.0.0',
-        endpoints: {
-            health: '/api/health',
-            products: '/api/products',
-            auth: '/api/auth',
-            orders: '/api/orders'
-        }
-    });
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(err.status || 500).json({
-        success: false,
-        message: err.message || 'Internal Server Error'
-    });
-});
-
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-});
+startServer();
 
 module.exports = app;

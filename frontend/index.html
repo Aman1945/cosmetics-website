@@ -1,15 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LuxeGlow - Premium Cosmetics</title>
-    <meta name="description" content="Discover premium cosmetics with stunning 3D visualization. Shop luxury makeup and skincare products.">
+    <meta name="description"
+        content="Discover premium cosmetics with stunning 3D visualization. Shop luxury makeup and skincare products.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="/styles/main.css">
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar" id="navbar">
@@ -17,14 +22,14 @@
             <div class="nav-brand">
                 <h1 class="logo">LuxeGlow</h1>
             </div>
-            
+
             <ul class="nav-menu" id="navMenu">
                 <li><a href="#home" class="nav-link active">Home</a></li>
                 <li><a href="#products" class="nav-link">Products</a></li>
                 <li><a href="#about" class="nav-link">About</a></li>
                 <li><a href="#contact" class="nav-link">Contact</a></li>
             </ul>
-            
+
             <div class="nav-actions">
                 <button class="icon-btn" id="searchBtn" aria-label="Search">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -42,7 +47,7 @@
                 </button>
                 <button class="btn btn-primary" id="loginBtn">Login</button>
             </div>
-            
+
             <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
                 <span></span>
                 <span></span>
@@ -62,7 +67,7 @@
                     <span class="gradient-text">Beauty</span>
                 </h1>
                 <p class="hero-description">
-                    Experience luxury cosmetics like never before with our premium collection. 
+                    Experience luxury cosmetics like never before with our premium collection.
                     Discover products that enhance your natural radiance.
                 </p>
                 <div class="hero-cta">
@@ -102,6 +107,48 @@
         </div>
     </section>
 
+    <!-- Trending Offers Section -->
+    <section class="section offers-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Limited Time</span>
+                <h2 class="section-title">Trending Offers</h2>
+            </div>
+
+            <div class="offers-grid">
+                <div class="offer-card offer-large">
+                    <div class="offer-content">
+                        <span class="offer-badge">MEGA SALE</span>
+                        <h3>Flat 50% OFF</h3>
+                        <p>On All Lipsticks & Lip Care</p>
+                        <button class="btn btn-primary">Shop Now</button>
+                    </div>
+                    <div class="offer-visual">
+                        <div class="offer-circle"></div>
+                    </div>
+                </div>
+
+                <div class="offer-card">
+                    <div class="offer-content">
+                        <span class="offer-badge">NEW</span>
+                        <h4>Buy 2 Get 1 Free</h4>
+                        <p>On Skincare Range</p>
+                        <button class="btn btn-secondary">Explore</button>
+                    </div>
+                </div>
+
+                <div class="offer-card">
+                    <div class="offer-content">
+                        <span class="offer-badge">HOT</span>
+                        <h4>Free Shipping</h4>
+                        <p>On Orders Above ₹999</p>
+                        <button class="btn btn-secondary">Shop</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Featured Products -->
     <section class="section products-section" id="products">
         <div class="container">
@@ -110,7 +157,7 @@
                 <h2 class="section-title">Featured Products</h2>
                 <p class="section-description">Explore our handpicked selection of premium cosmetics</p>
             </div>
-            
+
             <div class="filters">
                 <button class="filter-btn active" data-category="all">All</button>
                 <button class="filter-btn" data-category="lipstick">Lipstick</button>
@@ -118,11 +165,11 @@
                 <button class="filter-btn" data-category="eyeshadow">Eyeshadow</button>
                 <button class="filter-btn" data-category="skincare">Skincare</button>
             </div>
-            
+
             <div class="products-grid" id="productsGrid">
                 <!-- Products will be loaded dynamically -->
             </div>
-            
+
             <div class="section-cta">
                 <button class="btn btn-primary">View All Products</button>
             </div>
@@ -137,13 +184,13 @@
                     <span class="section-tag">About Us</span>
                     <h2 class="section-title">Redefining Beauty Standards</h2>
                     <p class="about-text">
-                        At LuxeGlow, we believe beauty is an art form. Our carefully curated collection 
-                        combines cutting-edge technology with natural ingredients to deliver products 
+                        At LuxeGlow, we believe beauty is an art form. Our carefully curated collection
+                        combines cutting-edge technology with natural ingredients to deliver products
                         that not only enhance your appearance but also nourish your skin.
                     </p>
                     <p class="about-text">
-                        Each product is crafted with precision and tested rigorously to ensure the 
-                        highest quality standards. Experience the future of beauty with our innovative 
+                        Each product is crafted with precision and tested rigorously to ensure the
+                        highest quality standards. Experience the future of beauty with our innovative
                         3D visualization technology.
                     </p>
                     <div class="about-features">
@@ -181,7 +228,7 @@
                 <h2 class="section-title">Contact Us</h2>
                 <p class="section-description">Have questions? We'd love to hear from you</p>
             </div>
-            
+
             <div class="contact-grid">
                 <div class="contact-info">
                     <div class="contact-item">
@@ -200,7 +247,7 @@
                         <p>Mumbai, Maharashtra, India</p>
                     </div>
                 </div>
-                
+
                 <form class="contact-form" id="contactForm">
                     <div class="form-group">
                         <input type="text" class="form-input" placeholder="Your Name" required>
@@ -281,4 +328,5 @@
 
     <script type="module" src="/js/main.js"></script>
 </body>
+
 </html>

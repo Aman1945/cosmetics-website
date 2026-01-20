@@ -20,23 +20,30 @@ app.use(express.urlencoded({ extended: true }));
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://siddquicosmetic_db_user:Aman123456@cosmetic.sdjlhwa.mongodb.net/cosmetics-db?retryWrites=true&w=majority';
 
 mongoose.connect(MONGODB_URI)
-    .then(() => console.log('✅ MongoDB Atlas Connected!'))
+    .then(async () => {
+        console.log('✅ MongoDB Atlas Connected!');
+        // Seed initial products if DB is empty
+        const count = await Product.countDocuments();
+        if (count === 0) {
+            console.log('🌱 Seeding sample products...');
+            await Product.create([
+                { name: 'Velvet Matte Lipstick', description: 'Long-lasting matte lipstick', price: 1299, category: 'lipstick', brand: 'AS³Cosmetic', images: [{ url: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400', alt: 'Lipstick' }], stock: 50, rating: { average: 4.8, count: 245 }, isFeatured: true },
+                { name: 'Radiant Glow Foundation', description: 'Lightweight foundation', price: 2499, category: 'foundation', brand: 'AS³Cosmetic', images: [{ url: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400', alt: 'Foundation' }], stock: 30, rating: { average: 4.9, count: 189 }, isFeatured: true }
+            ]);
+        }
+    })
     .catch(err => console.error('❌ MongoDB Connection Error:', err.message));
 
-const otpStore = {}; // Temporary OTP storage (In-memory is fine for OTP as they expire quickly)
+const otpStore = {};
 
 // ========== OTP SYSTEM ==========
-function generateOTP() {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-}
+function generateOTP() { return Math.floor(100000 + Math.random() * 900000).toString(); }
 
 app.post('/api/auth/send-otp', (req, res) => {
     const { phone } = req.body;
-    if (!phone || phone.length !== 10) return res.status(400).json({ success: false, message: 'Valid 10-digit phone required' });
-
+    if (!phone) return res.status(400).json({ success: false, message: 'Phone required' });
     const otp = generateOTP();
     otpStore[phone] = { otp, expires: Date.now() + 5 * 60 * 1000, verified: false };
-
     console.log(`📱 OTP for ${phone}: ${otp}`);
     res.json({ success: true, message: 'OTP sent!', demo_otp: otp });
 });
@@ -44,47 +51,24 @@ app.post('/api/auth/send-otp', (req, res) => {
 app.post('/api/auth/verify-otp', (req, res) => {
     const { phone, otp } = req.body;
     const stored = otpStore[phone];
-    if (!stored || stored.otp !== otp || Date.now() > stored.expires) {
-        return res.status(400).json({ success: false, message: 'Invalid or expired OTP' });
-    }
+    if (!stored || stored.otp !== otp) return res.status(400).json({ success: false, message: 'Invalid OTP' });
     stored.verified = true;
-    res.json({ success: true, message: 'OTP verified!' });
+    res.json({ success: true, message: 'Verified' });
 });
 
 // ========== AUTH API ==========
 app.post('/api/auth/login', async (req, res) => {
     const { email, password } = req.body;
     try {
-        // Auto-create admin if matches credentials
         if (email === 'admin@as3cosmetic.com' && password === 'admin123') {
             let admin = await User.findOne({ email });
-            if (!admin) {
-                admin = await User.create({ name: 'Admin', email, phone: '0000000000', password, role: 'admin' });
-            }
-            return res.json({ success: true, data: { user: admin, token: 'admin_token' } });
+            if (!admin) admin = await User.create({ name: 'Admin', email, phone: '0000000000', password, role: 'admin' });
+            return res.json({ success: true, data: { user: admin, token: 'admin_token_' + admin._id } });
         }
-
         const user = await User.findOne({ email, password });
-        if (!user) return res.status(401).json({ success: false, message: 'Invalid credentials' });
-
+        if (!user) return res.status(401).json({ success: false, message: 'Invalid login' });
         res.json({ success: true, data: { user, token: 'user_token_' + user._id } });
-    } catch (e) {
-        res.status(500).json({ success: false, message: e.message });
-    }
-});
-
-app.post('/api/auth/register', async (req, res) => {
-    const { name, email, phone, password, address } = req.body;
-    if (!otpStore[phone] || !otpStore[phone].verified) {
-        return res.status(400).json({ success: false, message: 'Verify phone first' });
-    }
-    try {
-        const user = await User.create({ name, email, phone, password, address });
-        delete otpStore[phone];
-        res.status(201).json({ success: true, data: { user, token: 'user_token_' + user._id } });
-    } catch (e) {
-        res.status(400).json({ success: false, message: 'Registration failed (Email/Phone might exist)' });
-    }
+    } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
 
 // ========== PRODUCTS API ==========
@@ -92,19 +76,9 @@ app.get('/api/products', async (req, res) => {
     try {
         let query = {};
         if (req.query.category && req.query.category !== 'all') query.category = req.query.category;
-        if (req.query.featured === 'true') query.isFeatured = true;
-
-        const products = await Product.find(query).limit(50);
+        const products = await Product.find(query);
         res.json({ success: true, data: { products, total: products.length } });
     } catch (e) { res.status(500).json({ success: false, message: e.message }); }
-});
-
-app.get('/api/products/:id', async (req, res) => {
-    try {
-        const product = await Product.findById(req.params.id);
-        if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
-        res.json({ success: true, data: { product } });
-    } catch (e) { res.status(400).json({ success: false, message: 'Invalid ID' }); }
 });
 
 app.post('/api/products', async (req, res) => {
@@ -117,7 +91,7 @@ app.post('/api/products', async (req, res) => {
 app.delete('/api/products/:id', async (req, res) => {
     try {
         await Product.findByIdAndDelete(req.params.id);
-        res.json({ success: true, message: 'Product deleted' });
+        res.json({ success: true, message: 'Deleted' });
     } catch (e) { res.status(400).json({ success: false, message: e.message }); }
 });
 
@@ -125,7 +99,6 @@ app.delete('/api/products/:id', async (req, res) => {
 app.post('/api/orders', async (req, res) => {
     try {
         const order = await Order.create(req.body);
-        console.log(`🛒 New Order: ${order._id} for ₹${order.total}`);
         res.status(201).json({ success: true, data: { order } });
     } catch (e) { res.status(400).json({ success: false, message: e.message }); }
 });
@@ -133,42 +106,20 @@ app.post('/api/orders', async (req, res) => {
 app.get('/api/orders', async (req, res) => {
     try {
         const orders = await Order.find().sort({ createdAt: -1 });
-        res.json({ success: true, data: { orders, total: orders.length } });
+        res.json({ success: true, data: { orders } });
     } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
 
-app.put('/api/orders/:id', async (req, res) => {
-    try {
-        const order = await Order.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        res.json({ success: true, data: { order } });
-    } catch (e) { res.status(400).json({ success: false, message: e.message }); }
-});
-
-// ========== ADMIN ANALYTICS ==========
 app.get('/api/admin/analytics', async (req, res) => {
     try {
         const orders = await Order.find();
         const users = await User.countDocuments({ role: 'user' });
         const revenue = orders.reduce((sum, o) => sum + o.total, 0);
-        const profit = revenue * 0.4; // Sample 40% profit margin
-
-        res.json({
-            success: true,
-            data: {
-                summary: {
-                    totalOrders: orders.length,
-                    totalRevenue: revenue,
-                    totalUsers: users,
-                    estimatedProfit: profit,
-                    pendingOrders: orders.filter(o => o.status === 'pending').length
-                },
-                recentOrders: orders.slice(-5).reverse()
-            }
-        });
+        res.json({ success: true, data: { summary: { totalOrders: orders.length, totalRevenue: revenue, totalUsers: users, pendingOrders: 0, estimatedProfit: revenue * 0.4 }, recentOrders: orders.slice(-5) } });
     } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
 
-app.get('/', (req, res) => res.json({ message: 'AS³Cosmetic API - Database Connected' }));
+app.get('/', (req, res) => res.json({ message: 'API Running' }));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server on ${PORT}`));

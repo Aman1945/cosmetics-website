@@ -22,8 +22,8 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Database Connection and Server Start
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://siddquicosmetic_db_user:K-QCjpar3_fx8c_@cosmetic.sdj1hwa.mongodb.net/cosmetics-db';
+// Database Connection and Server Start (System Restarting...)
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://siddquicosmetic_db_user:K%2DQCjpar3%5Ffx8c%5F@cosmetic.sdj1hwa.mongodb.net/cosmetics-db';
 
 const startServer = async () => {
     try {

@@ -30,33 +30,47 @@ function checkAuth() {
 function initLogin() {
     const loginForm = document.getElementById('adminLoginForm');
 
-    loginForm.addEventListener('submit', (e) => {
+    loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const email = document.getElementById('adminEmail').value;
         const password = document.getElementById('adminPassword').value;
 
-        // Demo Login Logic
-        if (email === 'admin@luxeglow.com' && password === 'admin123') {
-            localStorage.setItem('isAdmin', 'true');
-            state.isAuthenticated = true;
-
-            gsap.to('#loginOverlay', {
-                opacity: 0,
-                duration: 0.5,
-                onComplete: () => {
-                    document.getElementById('loginOverlay').style.display = 'none';
-                    document.getElementById('adminContainer').style.display = 'flex';
-                    gsap.from('.admin-container', { opacity: 0, y: 20, duration: 0.5 });
-                    loadDashboardData();
-                }
+        try {
+            const response = await fetch(`${API_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
             });
-        } else {
-            alert('Invalid Credentials!');
+
+            const result = await response.json();
+
+            if (result.success && result.data.user.role === 'admin') {
+                localStorage.setItem('isAdmin', 'true');
+                localStorage.setItem('adminToken', result.data.token);
+                state.isAuthenticated = true;
+
+                gsap.to('#loginOverlay', {
+                    opacity: 0,
+                    duration: 0.5,
+                    onComplete: () => {
+                        document.getElementById('loginOverlay').style.display = 'none';
+                        document.getElementById('adminContainer').style.display = 'flex';
+                        gsap.from('.admin-container', { opacity: 0, y: 20, duration: 0.5 });
+                        loadDashboardData();
+                    }
+                });
+            } else {
+                alert(result.message || 'Access Denied: Not an admin!');
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            alert('Login failed. Check server connection.');
         }
     });
 
     document.getElementById('logoutBtn').addEventListener('click', () => {
         localStorage.removeItem('isAdmin');
+        localStorage.removeItem('adminToken');
         location.reload();
     });
 }
@@ -156,15 +170,26 @@ function initProductManagement() {
     });
 }
 
-// REAL Save function calling the API
+// REAL Save function calling the API with Auth Token
 async function saveProduct(data, id = null) {
     try {
         const url = id ? `${API_URL}/products/${id}` : `${API_URL}/products`;
         const method = id ? 'PUT' : 'POST';
+        const token = localStorage.getItem('adminToken');
+
+        if (!token) {
+            alert('Your session has expired. Please login again.');
+            localStorage.removeItem('isAdmin');
+            location.reload();
+            return;
+        }
 
         const response = await fetch(url, {
             method: method,
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify(data)
         });
 
@@ -211,10 +236,23 @@ window.editProduct = (id) => {
     if (product) openModal(product);
 };
 
-window.deleteProduct = (id) => {
+window.deleteProduct = async (id) => {
     if (confirm('Are you sure you want to delete this product?')) {
-        state.products = state.products.filter(p => p._id !== id);
-        renderProductsTable(state.products);
-        alert('Product deleted');
+        const token = localStorage.getItem('adminToken');
+        try {
+            const response = await fetch(`${API_URL}/products/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const result = await response.json();
+            if (result.success) {
+                alert('Product deleted permanently! ✅');
+                loadProducts();
+            } else {
+                alert('Error: ' + result.message);
+            }
+        } catch (e) {
+            alert('Delete failed. Check connection.');
+        }
     }
 };

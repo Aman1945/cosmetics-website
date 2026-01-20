@@ -47,31 +47,35 @@ function initNavigation() {
         }
     });
 
-    // Smooth scroll
+    // Mobile Menu Toggle
+    if (mobileToggle) {
+        mobileToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            mobileToggle.classList.toggle('active');
+        });
+    }
+
+    // Smooth scroll and auto-close mobile menu
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const targetId = link.getAttribute('href');
+            if (targetId === '#' || !targetId) return;
             const targetSection = document.querySelector(targetId);
 
             if (targetSection) {
                 targetSection.scrollIntoView({ behavior: 'smooth' });
-
                 navLinks.forEach(l => l.classList.remove('active'));
                 link.classList.add('active');
+
+                if (navMenu.classList.contains('active')) {
+                    navMenu.classList.remove('active');
+                    mobileToggle.classList.remove('active');
+                }
             }
         });
     });
-
-    // Mobile menu toggle
-    if (mobileToggle) {
-        mobileToggle.addEventListener('click', () => {
-            navMenu.classList.toggle('active');
-        });
-    }
 }
-
-// Search Functionality
 function initSearch() {
     const searchBtn = document.getElementById('searchBtn');
 

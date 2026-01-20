@@ -1,6 +1,8 @@
 import { gsap } from 'gsap';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = window.location.hostname === 'localhost'
+    ? 'http://localhost:5000/api'
+    : 'https://cosmetics-website-1.onrender.com/api';
 
 // Admin State
 const state = {
@@ -33,12 +35,11 @@ function initLogin() {
         const email = document.getElementById('adminEmail').value;
         const password = document.getElementById('adminPassword').value;
 
-        // Demo Login Logic (In real app, verify with backend)
+        // Demo Login Logic
         if (email === 'admin@luxeglow.com' && password === 'admin123') {
             localStorage.setItem('isAdmin', 'true');
             state.isAuthenticated = true;
 
-            // Animation
             gsap.to('#loginOverlay', {
                 opacity: 0,
                 duration: 0.5,
@@ -50,7 +51,7 @@ function initLogin() {
                 }
             });
         } else {
-            alert('Invalid Credentials! (Try: admin@luxeglow.com / admin123)');
+            alert('Invalid Credentials!');
         }
     });
 
@@ -68,11 +69,9 @@ function initNavigation() {
         item.addEventListener('click', (e) => {
             e.preventDefault();
 
-            // Update Menu
             menuItems.forEach(i => i.classList.remove('active'));
             item.classList.add('active');
 
-            // Show View
             const viewId = item.dataset.view + 'View';
             views.forEach(view => {
                 view.style.display = 'none';
@@ -91,13 +90,11 @@ function initNavigation() {
 
 // Data Loading
 async function loadDashboardData() {
-    loadProducts(); // To get count
-    // Simulate other data loading
+    loadProducts();
 }
 
 async function loadProducts() {
     try {
-        // Fetch from API (or fallback to sample)
         const response = await fetch(`${API_URL}/products?limit=100`);
         const data = await response.json();
 
@@ -107,9 +104,7 @@ async function loadProducts() {
             document.getElementById('totalProductsCount').textContent = state.products.length;
         }
     } catch (error) {
-        console.error('Error loading products for admin:', error);
-        // Fallback to local sample if API fails (e.g. no DB)
-        // For admin we really want real data, so we might need to handle this gracefully
+        console.error('Error loading products:', error);
     }
 }
 
@@ -130,22 +125,17 @@ function renderProductsTable(products) {
     `).join('');
 }
 
-// Product Management (Modal & CRUD)
+// Product Management
 function initProductManagement() {
     const modal = document.getElementById('productModal');
     const addBtn = document.getElementById('addProductBtn');
     const closeBtn = document.getElementById('closeProductModal');
     const form = document.getElementById('productForm');
 
-    addBtn.addEventListener('click', () => {
-        openModal();
-    });
+    addBtn?.addEventListener('click', () => openModal());
+    closeBtn?.addEventListener('click', () => modal.style.display = 'none');
 
-    closeBtn.addEventListener('click', () => {
-        modal.style.display = 'none';
-    });
-
-    form.addEventListener('submit', async (e) => {
+    form?.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const productId = document.getElementById('productId').value;
@@ -155,59 +145,38 @@ function initProductManagement() {
             brand: document.getElementById('productBrand').value,
             price: parseFloat(document.getElementById('productPrice').value),
             stock: parseInt(document.getElementById('productStock').value),
-            description: document.getElementById('productDescription').value || 'Premium cosmetic product',
+            description: document.getElementById('productDescription').value || 'Premium product',
             images: [{ url: document.getElementById('productImage').value, alt: document.getElementById('productName').value }],
-            isFeatured: document.getElementById('productFeatured').checked,
-            rating: { average: 4.5, count: 0 }
+            isFeatured: document.getElementById('productFeatured').checked
         };
 
-        if (productId) {
-            // Update Existing (Simulated or Real API)
-            console.log('Updating product:', productId, productData);
-            // In a real app with Auth, we would PUT to /api/products/:id
-            // For now, let's just update local state and re-render if API fails to write to disk
-            await saveProduct(productData, productId);
-        } else {
-            // Create New
-            console.log('Creating product:', productData);
-            await saveProduct(productData);
-        }
-
+        await saveProduct(productData, productId);
         modal.style.display = 'none';
-        loadProducts(); // Reload table
+        loadProducts();
     });
 }
 
-// Helper to save via API
+// REAL Save function calling the API
 async function saveProduct(data, id = null) {
     try {
         const url = id ? `${API_URL}/products/${id}` : `${API_URL}/products`;
         const method = id ? 'PUT' : 'POST';
 
-        // Since we bypassed MongoDB, this might fail unless backend supports in-memory writes.
-        // But we pushed backend code with in-memory support earlier?
-        // Wait, the backend code I pushed earlier (Step 303) didn't implement in-memory writes for POST/PUT.
-        // It heavily relies on Mongoose models which are now disconnected.
-        // Actually, the server.js I pushed just removed the DB connection code but the routes STILL import models.
-        // That will crash if I try to use them without a connection.
-        // Ah, I need to fix the backend controllers to handle "No DB" mode if I want this to work perfectly without Mongo.
-        // Or I force the user to connect Mongo.
+        const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
 
-        // For now, let's pretend it works by updating local DOM, but warn user.
-        alert('Product saved! (Note: Without database, this will reset on refresh)');
-
-        // Optimistically update UI
-        if (id) {
-            const index = state.products.findIndex(p => p._id === id);
-            if (index !== -1) state.products[index] = { ...state.products[index], ...data };
+        const result = await response.json();
+        if (result.success) {
+            alert('Product saved permanently to Database! ✅');
         } else {
-            data._id = Date.now().toString();
-            state.products.push(data);
+            alert('Error: ' + result.message);
         }
-        renderProductsTable(state.products);
-
     } catch (e) {
-        alert('Error saving product');
+        console.error('Save error:', e);
+        alert('Server connection error. Data not saved.');
     }
 }
 

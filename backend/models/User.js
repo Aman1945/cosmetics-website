@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema({
         state: String,
         pincode: String
     },
+    isVerified: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
 });
 

@@ -13,7 +13,8 @@ export default defineConfig({
                 admin: resolve(__dirname, 'admin.html'),
                 auth: resolve(__dirname, 'auth.html'),
                 checkout: resolve(__dirname, 'checkout.html'),
-                profile: resolve(__dirname, 'profile.html')
+                profile: resolve(__dirname, 'profile.html'),
+                product: resolve(__dirname, 'product.html')
             }
         }
     },

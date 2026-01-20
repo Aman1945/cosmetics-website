@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details - AS³Cosmetic</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/styles/main.css">
+    <style>
+        .product-detail-container {
+            max-width: 1400px;
+            margin: 100px auto 50px;
+            padding: 0 20px;
+        }
+
+        .product-main {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            margin-bottom: 60px;
+        }
+
+        @media (max-width: 968px) {
+            .product-main {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+        }
+
+        .product-gallery {
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+        }
+
+        .main-image {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .thumbnail-images {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .thumbnail {
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .thumbnail:hover,
+        .thumbnail.active {
+            border-color: #fc2779;
+            transform: scale(1.05);
+        }
+
+        .product-info h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            color: #1a1a2e;
+            margin-bottom: 15px;
+        }
+
+        .product-brand {
+            color: #fc2779;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .product-rating {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .stars {
+            color: #ffc107;
+            font-size: 1.2rem;
+        }
+
+        .product-price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #fc2779;
+            margin-bottom: 20px;
+        }
+
+        .product-description {
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            font-size: 1.05rem;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .add-to-cart-big {
+            flex: 1;
+            padding: 18px;
+            background: linear-gradient(135deg, #fc2779, #ff5e9e);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .add-to-cart-big:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(252, 39, 121, 0.4);
+        }
+
+        .favorite-btn {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border: 2px solid #fc2779;
+            border-radius: 12px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .favorite-btn:hover,
+        .favorite-btn.active {
+            background: #fc2779;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .product-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .feature-badge {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            border-left: 4px solid #fc2779;
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .suggested-products {
+            margin-top: 60px;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 40px;
+            color: #1a1a2e;
+        }
+
+        .suggested-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 25px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar scrolled">
+        <div class="container nav-container">
+            <div class="nav-brand">
+                <a href="/" style="text-decoration: none;">
+                    <h1 class="logo">AS<sup>3</sup>Cosmetic</h1>
+                </a>
+            </div>
+            <div class="nav-actions">
+                <button class="icon-btn" onclick="window.location.href='/'">← Back</button>
+                <button class="icon-btn" id="cartBtn">🛒 <span class="badge" id="cartBadge">0</span></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Product Detail -->
+    <div class="product-detail-container">
+        <div class="product-main">
+            <!-- Gallery -->
+            <div class="product-gallery">
+                <img id="mainImage" class="main-image" src="https://via.placeholder.com/600" alt="Product">
+                <div class="thumbnail-images" id="thumbnails"></div>
+            </div>
+
+            <!-- Product Info -->
+            <div class="product-info">
+                <div class="product-brand" id="productBrand">AS³Cosmetic</div>
+                <h1 id="productName">Loading...</h1>
+                <div class="product-rating">
+                    <span class="stars">★★★★★</span>
+                    <span style="color: #666;">(4.8 - 245 reviews)</span>
+                </div>
+                <div class="product-price" id="productPrice">₹0</div>
+                <p class="product-description" id="productDescription">
+                    Loading product details...
+                </p>
+
+                <div class="product-actions">
+                    <button class="add-to-cart-big" id="addToCartBtn">Add to Cart</button>
+                    <button class="favorite-btn" id="favoriteBtn" title="Add to Favorites">♡</button>
+                </div>
+
+                <div class="product-features">
+                    <div class="feature-badge">
+                        <div class="feature-icon">✨</div>
+                        <div>Premium Quality</div>
+                    </div>
+                    <div class="feature-badge">
+                        <div class="feature-icon">🌿</div>
+                        <div>Natural Ingredients</div>
+                    </div>
+                    <div class="feature-badge">
+                        <div class="feature-icon">🚚</div>
+                        <div>Free Delivery</div>
+                    </div>
+                    <div class="feature-badge">
+                        <div class="feature-icon">💯</div>
+                        <div>100% Authentic</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Suggested Products -->
+        <div class="suggested-products">
+            <h2 class="section-title">You May Also Like</h2>
+            <div class="suggested-grid" id="suggestedGrid"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://cosmetics-website-1.onrender.com/api';
+        let currentProduct = null;
+        let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+
+        // Get product ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+
+        if (!productId) {
+            window.location.href = '/';
+        }
+
+        // Load product
+        async function loadProduct() {
+            try {
+                const res = await fetch(`${API_URL}/products`);
+                const data = await res.json();
+
+                if (data.success) {
+                    currentProduct = data.data.products.find(p => p._id === productId);
+                    if (currentProduct) {
+                        renderProduct();
+                        loadSuggestedProducts(data.data.products);
+                    } else {
+                        alert('Product not found');
+                        window.location.href = '/';
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function renderProduct() {
+            document.getElementById('productName').textContent = currentProduct.name;
+            document.getElementById('productBrand').textContent = currentProduct.brand;
+            document.getElementById('productPrice').textContent = `₹${currentProduct.price.toLocaleString()}`;
+            document.getElementById('productDescription').textContent = currentProduct.description || 'Premium cosmetic product crafted with the finest ingredients for your beauty';
+
+            const mainImg = currentProduct.images[0]?.url || 'https://via.placeholder.com/600';
+            document.getElementById('mainImage').src = mainImg;
+
+            // Check if favorited
+            if (favorites.includes(productId)) {
+                document.getElementById('favoriteBtn').classList.add('active');
+                document.getElementById('favoriteBtn').textContent = '♥';
+            }
+        }
+
+        function loadSuggestedProducts(allProducts) {
+            const suggested = allProducts
+                .filter(p => p._id !== productId && p.category === currentProduct.category)
+                .slice(0, 4);
+
+            document.getElementById('suggestedGrid').innerHTML = suggested.map(p => `
+                <div class="product-card" onclick="window.location.href='/product.html?id=${p._id}'">
+                    <div class="product-image">
+                        <img src="${p.images[0]?.url}" alt="${p.name}">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">${p.name}</h3>
+                        <div class="product-price">₹${p.price.toLocaleString()}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Add to cart
+        document.getElementById('addToCartBtn').addEventListener('click', () => {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const existing = cart.find(i => i.productId === productId);
+
+            if (existing) {
+                existing.quantity++;
+            } else {
+                cart.push({
+                    productId: currentProduct._id,
+                    name: currentProduct.name,
+                    price: currentProduct.price,
+                    image: currentProduct.images[0]?.url,
+                    quantity: 1
+                });
+            }
+
+            localStorage.setItem('cart', JSON.stringify(cart));
+            alert('✅ Added to cart!');
+            updateCartBadge();
+        });
+
+        // Favorite toggle
+        document.getElementById('favoriteBtn').addEventListener('click', function () {
+            if (favorites.includes(productId)) {
+                favorites = favorites.filter(id => id !== productId);
+                this.classList.remove('active');
+                this.textContent = '♡';
+                alert('Removed from favorites');
+            } else {
+                favorites.push(productId);
+                this.classList.add('active');
+                this.textContent = '♥';
+                alert('❤️ Added to favorites!');
+            }
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+        });
+
+        function updateCartBadge() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const total = cart.reduce((sum, i) => sum + i.quantity, 0);
+            document.getElementById('cartBadge').textContent = total;
+        }
+
+        loadProduct();
+        updateCartBadge();
+    </script>
+</body>
+
+</html>

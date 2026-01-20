@@ -134,7 +134,6 @@
             font-weight: 600;
         }
 
-        /* Amazon Style Helpers */
         .divider {
             display: flex;
             align-items: center;
@@ -153,6 +152,36 @@
         .divider span {
             padding: 0 10px;
             font-size: 0.85rem;
+        }
+
+        .otp-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .otp-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #fc2779, #ff5e9e);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .verified-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 10px;
         }
 
         @media (max-width: 480px) {
@@ -199,6 +228,19 @@
 
             <!-- Register Form -->
             <form id="registerForm" class="auth-form">
+                <!-- OTP Verification Section -->
+                <div class="otp-section">
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label>Mobile Number (Required for Registration)</label>
+                        <input type="tel" class="form-input" id="regPhone" placeholder="10-digit mobile" maxlength="10"
+                            required>
+                    </div>
+                    <button type="button" class="otp-btn" id="sendOtpBtn" onclick="sendOTP()">Verify Mobile</button>
+                    <div id="otpVerified" style="display: none;" class="verified-badge">
+                        ✅ Mobile Verified
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label>Full Name</label>
                     <input type="text" class="form-input" id="regName" placeholder="Enter your name" required>
@@ -206,11 +248,6 @@
                 <div class="form-group">
                     <label>Email Address</label>
                     <input type="email" class="form-input" id="regEmail" placeholder="name@example.com" required>
-                </div>
-                <div class="form-group">
-                    <label>Mobile Number</label>
-                    <input type="tel" class="form-input" id="regPhone" placeholder="10-digit mobile" maxlength="10"
-                        required>
                 </div>
                 <div class="form-group">
                     <label>Password</label>
@@ -221,7 +258,7 @@
                     By creating an account, you agree to AS³Cosmetic's <a href="#">Conditions of Use</a> and <a
                         href="#">Privacy Notice</a>.
                 </p>
-                <button type="submit" class="auth-btn">Create Account</button>
+                <button type="submit" class="auth-btn" id="registerBtn" disabled>Create Account</button>
                 <div class="auth-footer">
                     Already have an account? <a href="#" onclick="switchTab('login')">Sign In</a>
                 </div>
@@ -231,6 +268,7 @@
 
     <script>
         const API_URL = 'https://cosmetics-website-1.onrender.com/api';
+        let mobileVerified = false;
 
         function switchTab(tab) {
             document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
@@ -242,6 +280,60 @@
             } else {
                 document.querySelectorAll('.auth-tab')[1].classList.add('active');
                 document.getElementById('registerForm').classList.add('active');
+            }
+        }
+
+        // OTP System
+        async function sendOTP() {
+            const phone = document.getElementById('regPhone').value;
+            if (phone.length !== 10) {
+                alert('Please enter a valid 10-digit mobile number');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/auth/send-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    const otp = prompt(`Demo Mode: Your OTP is ${data.demo_otp}\n\nEnter OTP to verify:`);
+                    if (otp) {
+                        await verifyOTP(phone, otp);
+                    }
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                alert('Failed to send OTP');
+            }
+        }
+
+        async function verifyOTP(phone, otp) {
+            try {
+                const res = await fetch(`${API_URL}/auth/verify-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone, otp })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    mobileVerified = true;
+                    document.getElementById('otpVerified').style.display = 'inline-flex';
+                    document.getElementById('sendOtpBtn').disabled = true;
+                    document.getElementById('sendOtpBtn').textContent = '✓ Verified';
+                    document.getElementById('regPhone').disabled = true;
+                    document.getElementById('registerBtn').disabled = false;
+                    alert('Mobile verified successfully!');
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                alert('Verification failed');
             }
         }
 
@@ -280,6 +372,12 @@
         // Handle Register
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            if (!mobileVerified) {
+                alert('Please verify your mobile number first!');
+                return;
+            }
+
             const name = document.getElementById('regName').value;
             const email = document.getElementById('regEmail').value;
             const phone = document.getElementById('regPhone').value;
@@ -289,13 +387,14 @@
                 const res = await fetch(`${API_URL}/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, phone, password })
+                    body: JSON.stringify({ name, email, phone, password, otpVerified: true })
                 });
 
                 const data = await res.json();
                 if (data.success) {
-                    alert('Account created! Please login.');
+                    alert('✅ Account created successfully! You are now a verified user.');
                     switchTab('login');
+                    document.getElementById('loginEmail').value = email;
                 } else {
                     alert(data.message);
                 }

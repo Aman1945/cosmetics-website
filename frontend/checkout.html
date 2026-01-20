@@ -647,16 +647,32 @@
 
         function renderCartItems() {
             const container = document.getElementById('cartItems');
-            container.innerHTML = cart.map(item => `
-                <div class="cart-item">
+            container.innerHTML = cart.map((item, index) => `
+                <div class="cart-item" style="position: relative;">
                     <img src="${item.image || 'https://via.placeholder.com/70'}" alt="${item.name}">
                     <div class="item-details">
                         <div class="item-name">${item.name}</div>
                         <div class="item-qty">Qty: ${item.quantity || 1}</div>
                     </div>
                     <div class="item-price">₹${(item.price * (item.quantity || 1)).toLocaleString()}</div>
+                    <button onclick="removeFromCheckout(${index})" style="position: absolute; top: 10px; right: 10px; background: none; border: none; color: #fc2779; cursor: pointer; font-size: 1.2rem; transition: 0.3s;" title="Remove item">×</button>
                 </div>
             `).join('');
+        }
+
+        function removeFromCheckout(index) {
+            if (confirm('Remove this item from cart?')) {
+                cart.splice(index, 1);
+                localStorage.setItem('cart', JSON.stringify(cart));
+
+                if (cart.length === 0) {
+                    document.getElementById('checkoutContainer').style.display = 'none';
+                    document.getElementById('emptyCart').style.display = 'block';
+                } else {
+                    renderCartItems();
+                    updateSummary();
+                }
+            }
         }
 
         function updateSummary() {

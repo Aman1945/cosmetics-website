@@ -131,21 +131,42 @@ function renderProducts(products) {
     if (!grid) return;
     grid.innerHTML = products.map(product => `
         <div class="product-card" data-product-id="${product._id}">
-            <div class="product-image">
+            <div class="product-image" onclick="window.location.href='/product.html?id=${product._id}'" style="cursor: pointer;">
                 <img src="${product.images[0]?.url}" alt="${product.name}">
             </div>
             <div class="product-info">
                 <div class="product-category">${product.category}</div>
-                <h3 class="product-name">${product.name}</h3>
+                <h3 class="product-name" onclick="window.location.href='/product.html?id=${product._id}'" style="cursor: pointer;">${product.name}</h3>
                 <div class="product-footer">
                     <div class="product-price">₹${product.price.toLocaleString()}</div>
-                    <button class="add-to-cart-btn" onclick="addToCart('${product._id}')">Add</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart('${product._id}')" title="Add to Cart">+</button>
+                        <button class="add-to-cart-btn" onclick="event.stopPropagation(); toggleFavorite('${product._id}')" style="background: ${isFavorite(product._id) ? '#fc2779' : 'white'}; color: ${isFavorite(product._id) ? 'white' : '#fc2779'}; border: 2px solid #fc2779;" title="Favorite">${isFavorite(product._id) ? '♥' : '♡'}</button>
+                    </div>
                 </div>
             </div>
         </div>
     `).join('');
     gsap.from('.product-card', { opacity: 0, y: 30, stagger: 0.1, duration: 0.5 });
 }
+
+function isFavorite(id) {
+    const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+    return favorites.includes(id);
+}
+
+window.toggleFavorite = function (id) {
+    let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+    if (favorites.includes(id)) {
+        favorites = favorites.filter(fid => fid !== id);
+        showNotification('Removed from favorites');
+    } else {
+        favorites.push(id);
+        showNotification('❤️ Added to favorites!');
+    }
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+    loadProducts(state.currentCategory);
+};
 
 window.addToCart = function (productId) {
     const product = state.products.find(p => p._id === productId);

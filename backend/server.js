@@ -100,7 +100,7 @@ app.post('/api/auth/verify-otp', (req, res) => {
 // Register User
 app.post('/api/auth/register', async (req, res) => {
     try {
-        const { name, email, phone, password } = req.body;
+        const { name, email, phone, password, otpVerified } = req.body;
 
         // Basic Validation
         if (!name || !email || !phone || !password) {
@@ -113,13 +113,21 @@ app.post('/api/auth/register', async (req, res) => {
             return res.status(400).json({ success: false, message: 'User with this email or phone already exists' });
         }
 
-        const newUser = await User.create({ name, email, phone, password, role: 'user' });
+        // Create user with verified status if OTP was verified
+        const newUser = await User.create({
+            name,
+            email,
+            phone,
+            password,
+            role: 'user',
+            isVerified: otpVerified === true // Mark as verified if OTP was used
+        });
 
         res.status(201).json({
             success: true,
             message: 'Registration successful!',
             data: {
-                user: { id: newUser._id, name: newUser.name, email: newUser.email, role: newUser.role },
+                user: { id: newUser._id, name: newUser.name, email: newUser.email, role: newUser.role, phone: newUser.phone, isVerified: newUser.isVerified },
                 token: 'user_token_' + newUser._id
             }
         });
@@ -135,7 +143,7 @@ app.post('/api/auth/login', async (req, res) => {
         // Hardcoded Admin
         if (email === 'admin@as3cosmetic.com' && password === 'admin123') {
             let admin = await User.findOne({ email });
-            if (!admin) admin = await User.create({ name: 'Admin', email, phone: '0000000000', password, role: 'admin' });
+            if (!admin) admin = await User.create({ name: 'Admin', email, phone: '0000000000', password, role: 'admin', isVerified: true });
             return res.json({ success: true, data: { user: admin, token: 'admin_token_' + admin._id } });
         }
 
@@ -148,12 +156,36 @@ app.post('/api/auth/login', async (req, res) => {
             success: true,
             message: 'Login successful!',
             data: {
-                user: { id: user._id, name: user.name, email: user.email, role: user.role, phone: user.phone },
+                user: { id: user._id, name: user.name, email: user.email, role: user.role, phone: user.phone, isVerified: user.isVerified },
                 token: 'user_token_' + user._id
             }
         });
     } catch (e) {
         res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+// ========== USER MANAGEMENT (ADMIN) ==========
+app.get('/api/admin/users', async (req, res) => {
+    try {
+        const users = await User.find({ role: 'user' }).sort({ createdAt: -1 });
+        res.json({ success: true, data: { users, total: users.length } });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+app.put('/api/admin/users/:id', async (req, res) => {
+    try {
+        const { name, email, phone, isVerified } = req.body;
+        const user = await User.findByIdAndUpdate(
+            req.params.id,
+            { name, email, phone, isVerified },
+            { new: true }
+        );
+        res.json({ success: true, data: { user }, message: 'User updated successfully' });
+    } catch (e) {
+        res.status(400).json({ success: false, message: e.message });
     }
 });
 

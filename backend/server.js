@@ -23,7 +23,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Database Connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://siddquicosmetic_db_user:dh1Uq9gX1u4V0h5e@cosmetic.sdj1hwa.mongodb.net/cosmetics-db';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://siddquicosmetic_db_user:K-QCjpar3_fx8c_@cosmetic.sdj1hwa.mongodb.net/cosmetics-db';
 
 mongoose.connect(MONGODB_URI, {
     serverSelectionTimeoutMS: 5000, // 5 second mein fail ho jaye agar connect na ho

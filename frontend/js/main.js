@@ -480,4 +480,63 @@ function showNotification(message) {
 }
 
 // Load sample products on init
+// View All Button Logic
+function initViewAll() {
+    const viewAllBtn = document.getElementById('viewAllBtn');
+    if (viewAllBtn) {
+        viewAllBtn.addEventListener('click', () => {
+            const productsSection = document.getElementById('products');
+            if (productsSection) {
+                productsSection.scrollIntoView({ behavior: 'smooth' });
+                // Activate 'All' filter
+                const allBtn = document.querySelector('.filter-btn[data-category="all"]');
+                if (allBtn) allBtn.click();
+            }
+        });
+    }
+}
+
+// Login Modal Logic
+function initLoginModal() {
+    const loginBtn = document.getElementById('loginBtn');
+    const loginModal = document.getElementById('loginModal');
+    const closeBtn = document.getElementById('closeLoginModal');
+    const overlay = document.getElementById('modalOverlay');
+
+    if (loginBtn) {
+        loginBtn.addEventListener('click', () => {
+            if (loginModal) {
+                loginModal.style.display = 'block';
+                if (overlay) overlay.classList.add('active');
+            }
+        });
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            if (loginModal) loginModal.style.display = 'none';
+            if (overlay) overlay.classList.remove('active');
+        });
+    }
+
+    if (overlay) {
+        overlay.addEventListener('click', () => {
+            if (loginModal) loginModal.style.display = 'none';
+            overlay.classList.remove('active');
+        });
+    }
+
+    const form = document.getElementById('userLoginForm');
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            showNotification('Successfully logged in! (Demo)');
+            if (loginModal) loginModal.style.display = 'none';
+            if (overlay) overlay.classList.remove('active');
+            if (loginBtn) loginBtn.textContent = 'My Account';
+        });
+    }
+}
+
+// Load sample products on init
 loadSampleProducts();

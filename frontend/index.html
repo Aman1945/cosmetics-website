@@ -326,18 +326,18 @@
 
     <!-- Login Modal -->
     <div class="modal" id="loginModal">
-        <div class="modal-content" style="max-width: 400px; text-align: center;">
-            <span class="close-btn" id="closeLoginModal"
-                style="float: right; cursor: pointer; font-size: 1.5rem;">&times;</span>
-            <h2 style="margin-bottom: 0.5rem;">Welcome Back</h2>
+        <div class="modal-content" style="max-width: 400px; text-align: center; position: relative;">
+            <button class="close-btn" id="closeLoginModal"
+                style="position: absolute; right: 15px; top: 15px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray);">&times;</button>
+            <h2 style="margin-bottom: 0.5rem; margin-top: 10px;">Welcome Back</h2>
             <p style="color: grey; margin-bottom: 2rem;">Login to access your account</p>
 
-            <button class="btn btn-block"
+            <button class="btn btn-block" id="googleLoginBtn"
                 style="background: white; border: 1px solid #ddd; color: #333; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; gap: 10px;">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="20">
                 Sign in with Google
             </button>
-            <button class="btn btn-block"
+            <button class="btn btn-block" id="phoneLoginBtn"
                 style="background: #4A90E2; color: white; margin-bottom: 2rem; display: flex; align-items: center; justify-content: center; gap: 10px;">
                 <span>📱</span>
                 Login with Phone
@@ -349,7 +349,7 @@
                 <hr style="flex: 1; border: none; border-top: 1px solid #eee;">
             </div>
 
-            <form id="userLoginForm">
+            <form id="userLoginForm" style="margin-bottom: 1.5rem;">
                 <div class="form-group">
                     <input type="email" class="form-input" placeholder="Email Address" required>
                 </div>
@@ -358,9 +358,18 @@
                 </div>
                 <button type="submit" class="btn btn-primary btn-block">Login</button>
             </form>
+
             <p style="margin-top: 1rem; font-size: 0.9rem;">
-                Don't have an account? <a href="#" style="color: var(--primary);">Sign up</a>
+                Don't have an account? <a href="#" id="signUpBtn" style="color: var(--primary); font-weight: 600;">Sign
+                    up</a>
             </p>
+
+            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #eee;">
+                <p style="font-size: 0.85rem; color: var(--gray);">Are you an Admin?</p>
+                <a href="/admin.html"
+                    style="color: var(--secondary); text-decoration: none; font-weight: 600; font-size: 0.9rem;">Go to
+                    Admin Dashboard &rarr;</a>
+            </div>
         </div>
     </div>
 

@@ -623,6 +623,42 @@ function initLoginModal() {
             if (loginBtn) loginBtn.textContent = 'My Account';
         });
     }
+
+    // Social & Sign Up Buttons
+    const googleBtn = document.getElementById('googleLoginBtn');
+    const phoneBtn = document.getElementById('phoneLoginBtn');
+    const signUpBtn = document.getElementById('signUpBtn');
+
+    if (googleBtn) {
+        googleBtn.addEventListener('click', () => {
+            showNotification('Connecting to Google... (Demo)');
+            setTimeout(() => {
+                showNotification('Logged in with Google!');
+                if (loginModal) loginModal.style.display = 'none';
+                if (overlay) overlay.classList.remove('active');
+                if (loginBtn) loginBtn.textContent = 'Account (G)';
+            }, 1000);
+        });
+    }
+
+    if (phoneBtn) {
+        phoneBtn.addEventListener('click', () => {
+            const phone = prompt('Enter your phone number:');
+            if (phone) {
+                showNotification('OTP sent to ' + phone);
+                if (loginModal) loginModal.style.display = 'none';
+                if (overlay) overlay.classList.remove('active');
+                if (loginBtn) loginBtn.textContent = 'Account (P)';
+            }
+        });
+    }
+
+    if (signUpBtn) {
+        signUpBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            showNotification('Redirecting to Sign Up page... (Demo)');
+        });
+    }
 }
 
 // Load sample products on init

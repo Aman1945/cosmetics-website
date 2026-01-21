@@ -95,5 +95,20 @@ app.put('/api/admin/users/:id', async (req, res) => {
 
 app.get('/', (req, res) => res.json({ message: 'AS³Cosmetic API Running' }));
 
+// Health check and Self-ping route
+app.get('/ping', (req, res) => res.send('Pong! Server is awake. 🚀'));
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server on ${PORT}`));
+const server = app.listen(PORT, () => {
+    console.log(`🚀 Server on ${PORT}`);
+
+    // Self-pinging script to keep server awake on Render
+    const SERVER_URL = `https://cosmetics-website-1.onrender.com/ping`;
+    setInterval(() => {
+        require('https').get(SERVER_URL, (res) => {
+            console.log(`Self-ping sent to ${SERVER_URL} - Status: ${res.statusCode}`);
+        }).on('error', (err) => {
+            console.error('Self-ping failed:', err.message);
+        });
+    }, 10 * 60 * 1000); // Ping every 10 minutes
+});

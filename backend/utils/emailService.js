@@ -1,35 +1,18 @@
 const nodemailer = require('nodemailer');
 
-// Create transporter for Gmail or Ethereal
-const createTransporter = () => {
-    const isEthereal = process.env.EMAIL_USER && process.env.EMAIL_USER.includes('ethereal.email');
-
-    if (isEthereal) {
-        // Ethereal for testing
-        return nodemailer.createTransport({
-            host: 'smtp.ethereal.email',
-            port: 587,
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASSWORD
-            }
-        });
-    } else {
-        // Gmail for production - explicit settings
-        return nodemailer.createTransport({
-            host: 'smtp.gmail.com',
-            port: 587,
-            secure: false,
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASSWORD
-            },
-            tls: {
-                rejectUnauthorized: false
-            }
-        });
-    }
-};
+// Shared Transporter (Singleton for better performance)
+const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465, // Changed to 465 (SSL) for faster/more secure connection
+    secure: true,
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD
+    },
+    pool: true, // Use connection pooling
+    maxConnections: 5,
+    maxMessages: 100
+});
 
 // Generate 6-digit OTP
 const generateOTP = () => {
@@ -39,7 +22,6 @@ const generateOTP = () => {
 // Send OTP email
 const sendOTPEmail = async (email, otp, name) => {
     try {
-        const transporter = createTransporter();
 
         const mailOptions = {
             from: `"AS³Cosmetic" <${process.env.EMAIL_USER}>`,
@@ -153,7 +135,6 @@ const sendOTPEmail = async (email, otp, name) => {
 // Send welcome email after verification
 const sendWelcomeEmail = async (email, name) => {
     try {
-        const transporter = createTransporter();
 
         const mailOptions = {
             from: `"AS³Cosmetic" <${process.env.EMAIL_USER}>`,

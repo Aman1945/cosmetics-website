@@ -342,7 +342,7 @@
                     alert('✅ ' + data.message);
 
                     // Redirect to OTP verification page
-                    window.location.href = '/verify-otp.html';
+                    window.location.href = 'verify-otp.html';
                 } else {
                     alert(data.message);
                     registerBtn.disabled = false;
@@ -350,7 +350,7 @@
                 }
             } catch (err) {
                 console.error('Registration error:', err);
-                alert('Registration failed. Please check your connection.');
+                alert('Registration failed: ' + err.message + '\nPlease check console for details.');
                 registerBtn.disabled = false;
                 registerBtn.textContent = 'Create Account & Send OTP';
             }

@@ -126,7 +126,7 @@ exports.verifyOTP = async (req, res) => {
 
         res.json({
             success: true,
-            message: 'Email verified successfully! Welcome to LuxeGlow! 🎉',
+            message: 'Email verified successfully! Welcome to AS³Cosmetic! 🎉',
             data: {
                 user: {
                     id: user._id,

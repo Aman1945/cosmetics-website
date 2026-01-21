@@ -1,14 +1,34 @@
 const nodemailer = require('nodemailer');
 
-// Create transporter for Gmail
+// Create transporter for Gmail or Ethereal
 const createTransporter = () => {
-    return nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASSWORD // Use App Password from Gmail
-        }
-    });
+    const isEthereal = process.env.EMAIL_USER && process.env.EMAIL_USER.includes('ethereal.email');
+
+    if (isEthereal) {
+        // Ethereal for testing
+        return nodemailer.createTransport({
+            host: 'smtp.ethereal.email',
+            port: 587,
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASSWORD
+            }
+        });
+    } else {
+        // Gmail for production - explicit settings
+        return nodemailer.createTransport({
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false,
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASSWORD
+            },
+            tls: {
+                rejectUnauthorized: false
+            }
+        });
+    }
 };
 
 // Generate 6-digit OTP
@@ -22,7 +42,7 @@ const sendOTPEmail = async (email, otp, name) => {
         const transporter = createTransporter();
 
         const mailOptions = {
-            from: `"LuxeGlow Cosmetics" <${process.env.EMAIL_USER}>`,
+            from: `"AS³Cosmetic" <${process.env.EMAIL_USER}>`,
             to: email,
             subject: 'Verify Your Email - OTP Code',
             html: `
@@ -93,11 +113,11 @@ const sendOTPEmail = async (email, otp, name) => {
                 <body>
                     <div class="container">
                         <div class="header">
-                            <h1>🌟 LuxeGlow Cosmetics</h1>
+                            <h1>🌟 AS³Cosmetic</h1>
                         </div>
                         <div class="content">
                             <p class="message">Hi <strong>${name}</strong>,</p>
-                            <p class="message">Thank you for registering with LuxeGlow! Please use the following OTP to verify your email address:</p>
+                            <p class="message">Thank you for registering with AS³Cosmetic! Please use the following OTP to verify your email address:</p>
                             
                             <div class="otp-box">
                                 ${otp}
@@ -106,13 +126,13 @@ const sendOTPEmail = async (email, otp, name) => {
                             <p class="message">This OTP is valid for <strong>10 minutes</strong>.</p>
                             
                             <div class="warning">
-                                <strong>⚠️ Security Note:</strong> Never share this OTP with anyone. LuxeGlow team will never ask for your OTP.
+                                <strong>⚠️ Security Note:</strong> Never share this OTP with anyone. AS³Cosmetic team will never ask for your OTP.
                             </div>
                             
                             <p class="message">If you didn't request this verification, please ignore this email.</p>
                         </div>
                         <div class="footer">
-                            <p>© 2026 LuxeGlow Cosmetics. All rights reserved.</p>
+                            <p>© 2026 AS³Cosmetic. All rights reserved.</p>
                             <p>Premium Beauty Products | Trusted Worldwide</p>
                         </div>
                     </div>
@@ -136,9 +156,9 @@ const sendWelcomeEmail = async (email, name) => {
         const transporter = createTransporter();
 
         const mailOptions = {
-            from: `"LuxeGlow Cosmetics" <${process.env.EMAIL_USER}>`,
+            from: `"AS³Cosmetic" <${process.env.EMAIL_USER}>`,
             to: email,
-            subject: 'Welcome to LuxeGlow! 🎉',
+            subject: 'Welcome to AS³Cosmetic! 🎉',
             html: `
                 <!DOCTYPE html>
                 <html>
@@ -181,12 +201,12 @@ const sendWelcomeEmail = async (email, name) => {
                 <body>
                     <div class="container">
                         <div class="header">
-                            <h1>🎉 Welcome to LuxeGlow!</h1>
+                            <h1>🎉 Welcome to AS³Cosmetic!</h1>
                         </div>
                         <div class="content">
                             <h2>Hi ${name}! 👋</h2>
                             <p>Your email has been successfully verified!</p>
-                            <p>We're thrilled to have you join the LuxeGlow family. Get ready to discover premium beauty products that will make you shine! ✨</p>
+                            <p>We're thrilled to have you join the AS³Cosmetic family. Get ready to discover premium beauty products that will make you shine! ✨</p>
                             <center>
                                 <a href="${process.env.FRONTEND_URL}" class="button">Start Shopping</a>
                             </center>

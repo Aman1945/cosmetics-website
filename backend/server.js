@@ -3,6 +3,11 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 
+// Load Routes
+const authRoutes = require('./routes/auth');
+const productRoutes = require('./routes/products');
+const orderRoutes = require('./routes/orders');
+
 // Load Models
 const Product = require('./models/Product');
 const User = require('./models/User');
@@ -12,6 +17,7 @@ dotenv.config();
 
 const app = express();
 
+// Middleware
 app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -34,139 +40,28 @@ mongoose.connect(MONGODB_URI)
     })
     .catch(err => console.error('❌ MongoDB Connection Error:', err.message));
 
-// ========== EMAIL OTP SYSTEM ==========
-const nodemailer = require('nodemailer');
-const otpStore = {};
+// API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/orders', orderRoutes);
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER || 'as3cosmetic@gmail.com',
-        pass: process.env.EMAIL_PASS || 'your-app-password'
-    }
-});
-
-function generateOTP() {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
-app.post('/api/auth/send-otp', (req, res) => {
-    const { phone } = req.body;
-
-    if (!phone || phone.length !== 10) {
-        return res.status(400).json({ success: false, message: 'Valid 10-digit phone number required' });
-    }
-
-    const otp = generateOTP();
-    otpStore[phone] = {
-        otp,
-        expires: Date.now() + 5 * 60 * 1000, // 5 minutes
-        verified: false
-    };
-
-    console.log(`📱 OTP for ${phone}: ${otp}`); // Demo mode - log OTP
-
-    res.json({
-        success: true,
-        message: 'OTP sent successfully!',
-        demo_otp: otp // Remove in production
-    });
-});
-
-app.post('/api/auth/verify-otp', (req, res) => {
-    const { email, otp } = req.body;
-
-    if (!email || !otp) {
-        return res.status(400).json({ success: false, message: 'Email and OTP required' });
-    }
-
-    const stored = otpStore[email];
-
-    if (!stored) {
-        return res.status(400).json({ success: false, message: 'OTP not found. Request a new OTP.' });
-    }
-
-    if (Date.now() > stored.expires) {
-        delete otpStore[email];
-        return res.status(400).json({ success: false, message: 'OTP expired. Request a new one.' });
-    }
-
-    if (stored.otp !== otp) {
-        return res.status(400).json({ success: false, message: 'Invalid OTP. Please try again.' });
-    }
-
-    // Mark as verified
-    stored.verified = true;
-
-    res.json({
-        success: true,
-        message: 'OTP verified successfully!'
-    });
-});
-
-// ========== AUTH API ==========
-
-// Register User
-app.post('/api/auth/register', async (req, res) => {
+// Additional Admin Routes (if not in modular routes)
+app.get('/api/admin/analytics', async (req, res) => {
     try {
-        const { name, email, phone, password, otpVerified } = req.body;
-
-        // Basic Validation
-        if (!name || !email || !phone || !password) {
-            return res.status(400).json({ success: false, message: 'All fields are required' });
-        }
-
-        // Check if user exists
-        const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
-        if (existingUser) {
-            return res.status(400).json({ success: false, message: 'User with this email or phone already exists' });
-        }
-
-        // Create user with verified status if OTP was verified
-        const newUser = await User.create({
-            name,
-            email,
-            phone,
-            password,
-            role: 'user',
-            isVerified: otpVerified === true // Mark as verified if OTP was used
-        });
-
-        res.status(201).json({
-            success: true,
-            message: 'Registration successful!',
-            data: {
-                user: { id: newUser._id, name: newUser.name, email: newUser.email, role: newUser.role, phone: newUser.phone, isVerified: newUser.isVerified },
-                token: 'user_token_' + newUser._id
-            }
-        });
-    } catch (e) {
-        res.status(500).json({ success: false, message: e.message });
-    }
-});
-
-// Login User
-app.post('/api/auth/login', async (req, res) => {
-    const { email, password } = req.body;
-    try {
-        // Hardcoded Admin
-        if (email === 'admin@as3cosmetic.com' && password === 'admin123') {
-            let admin = await User.findOne({ email });
-            if (!admin) admin = await User.create({ name: 'Admin', email, phone: '0000000000', password, role: 'admin', isVerified: true });
-            return res.json({ success: true, data: { user: admin, token: 'admin_token_' + admin._id } });
-        }
-
-        const user = await User.findOne({ email, password });
-        if (!user) {
-            return res.status(401).json({ success: false, message: 'Invalid email or password' });
-        }
-
+        const orders = await Order.find();
+        const users = await User.countDocuments({ role: 'user' });
+        const revenue = orders.reduce((sum, o) => sum + o.total, 0);
         res.json({
             success: true,
-            message: 'Login successful!',
             data: {
-                user: { id: user._id, name: user.name, email: user.email, role: user.role, phone: user.phone, isVerified: user.isVerified },
-                token: 'user_token_' + user._id
+                summary: {
+                    totalOrders: orders.length,
+                    totalRevenue: revenue,
+                    totalUsers: users,
+                    pendingOrders: 0,
+                    estimatedProfit: revenue * 0.4
+                },
+                recentOrders: orders.slice(-5)
             }
         });
     } catch (e) {
@@ -174,7 +69,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-// ========== USER MANAGEMENT (ADMIN) ==========
+// Admin User Management (if not in modular routes)
 app.get('/api/admin/users', async (req, res) => {
     try {
         const users = await User.find({ role: 'user' }).sort({ createdAt: -1 });
@@ -196,54 +91,6 @@ app.put('/api/admin/users/:id', async (req, res) => {
     } catch (e) {
         res.status(400).json({ success: false, message: e.message });
     }
-});
-
-// ========== PRODUCTS API ==========
-app.get('/api/products', async (req, res) => {
-    try {
-        let query = {};
-        if (req.query.category && req.query.category !== 'all') query.category = req.query.category;
-        const products = await Product.find(query);
-        res.json({ success: true, data: { products, total: products.length } });
-    } catch (e) { res.status(500).json({ success: false, message: e.message }); }
-});
-
-app.post('/api/products', async (req, res) => {
-    try {
-        const product = await Product.create(req.body);
-        res.status(201).json({ success: true, data: { product } });
-    } catch (e) { res.status(400).json({ success: false, message: e.message }); }
-});
-
-app.delete('/api/products/:id', async (req, res) => {
-    try {
-        await Product.findByIdAndDelete(req.params.id);
-        res.json({ success: true, message: 'Deleted' });
-    } catch (e) { res.status(400).json({ success: false, message: e.message }); }
-});
-
-// ========== ORDERS API ==========
-app.post('/api/orders', async (req, res) => {
-    try {
-        const order = await Order.create(req.body);
-        res.status(201).json({ success: true, data: { order } });
-    } catch (e) { res.status(400).json({ success: false, message: e.message }); }
-});
-
-app.get('/api/orders', async (req, res) => {
-    try {
-        const orders = await Order.find().sort({ createdAt: -1 });
-        res.json({ success: true, data: { orders } });
-    } catch (e) { res.status(500).json({ success: false, message: e.message }); }
-});
-
-app.get('/api/admin/analytics', async (req, res) => {
-    try {
-        const orders = await Order.find();
-        const users = await User.countDocuments({ role: 'user' });
-        const revenue = orders.reduce((sum, o) => sum + o.total, 0);
-        res.json({ success: true, data: { summary: { totalOrders: orders.length, totalRevenue: revenue, totalUsers: users, pendingOrders: 0, estimatedProfit: revenue * 0.4 }, recentOrders: orders.slice(-5) } });
-    } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
 
 app.get('/', (req, res) => res.json({ message: 'AS³Cosmetic API Running' }));

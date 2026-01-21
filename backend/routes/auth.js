@@ -4,6 +4,8 @@ const { auth } = require('../middleware/auth');
 const {
     register,
     login,
+    verifyOTP,
+    resendOTP,
     getProfile,
     updateProfile,
     addToCart,
@@ -13,6 +15,8 @@ const {
 // Public routes
 router.post('/register', register);
 router.post('/login', login);
+router.post('/verify-otp', verifyOTP);
+router.post('/resend-otp', resendOTP);
 
 // Protected routes
 router.get('/profile', auth, getProfile);

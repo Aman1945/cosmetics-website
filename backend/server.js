@@ -34,8 +34,17 @@ mongoose.connect(MONGODB_URI)
     })
     .catch(err => console.error('❌ MongoDB Connection Error:', err.message));
 
-// ========== OTP SYSTEM ==========
-const otpStore = {}; // In-memory OTP storage (for demo - use Redis in production)
+// ========== EMAIL OTP SYSTEM ==========
+const nodemailer = require('nodemailer');
+const otpStore = {};
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER || 'as3cosmetic@gmail.com',
+        pass: process.env.EMAIL_PASS || 'your-app-password'
+    }
+});
 
 function generateOTP() {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -65,20 +74,20 @@ app.post('/api/auth/send-otp', (req, res) => {
 });
 
 app.post('/api/auth/verify-otp', (req, res) => {
-    const { phone, otp } = req.body;
+    const { email, otp } = req.body;
 
-    if (!phone || !otp) {
-        return res.status(400).json({ success: false, message: 'Phone and OTP required' });
+    if (!email || !otp) {
+        return res.status(400).json({ success: false, message: 'Email and OTP required' });
     }
 
-    const stored = otpStore[phone];
+    const stored = otpStore[email];
 
     if (!stored) {
         return res.status(400).json({ success: false, message: 'OTP not found. Request a new OTP.' });
     }
 
     if (Date.now() > stored.expires) {
-        delete otpStore[phone];
+        delete otpStore[email];
         return res.status(400).json({ success: false, message: 'OTP expired. Request a new one.' });
     }
 

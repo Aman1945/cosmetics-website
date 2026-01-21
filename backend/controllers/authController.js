@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const { generateOTP, sendOTPEmail, sendWelcomeEmail } = require('../utils/emailService');
 
 // Generate JWT token
 const generateToken = (userId) => {
@@ -8,7 +9,7 @@ const generateToken = (userId) => {
     });
 };
 
-// Register new user
+// Register new user (sends OTP)
 exports.register = async (req, res) => {
     try {
         const { name, email, password } = req.body;
@@ -22,21 +23,110 @@ exports.register = async (req, res) => {
             });
         }
 
-        // Create new user
+        // Generate OTP
+        const otp = generateOTP();
+        const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+        // Create new user (unverified)
         const user = new User({
             name,
             email,
-            password
+            password,
+            emailOTP: otp,
+            otpExpires: otpExpires,
+            isVerified: false
         });
 
         await user.save();
 
-        // Generate token
-        const token = generateToken(user._id);
+        // Send OTP email
+        try {
+            await sendOTPEmail(email, otp, name);
+        } catch (emailError) {
+            // Delete user if email fails
+            await User.findByIdAndDelete(user._id);
+            throw new Error('Failed to send OTP email. Please try again.');
+        }
 
         res.status(201).json({
             success: true,
-            message: 'User registered successfully',
+            message: 'Registration successful! Please check your email for OTP verification.',
+            data: {
+                email: user.email,
+                userId: user._id
+            }
+        });
+    } catch (error) {
+        console.error('Register error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Error registering user',
+            error: error.message
+        });
+    }
+};
+
+// Verify OTP
+exports.verifyOTP = async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+
+        if (!email || !otp) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email and OTP are required'
+            });
+        }
+
+        // Find user
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Check if already verified
+        if (user.isVerified) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email already verified'
+            });
+        }
+
+        // Check OTP expiry
+        if (!user.otpExpires || user.otpExpires < new Date()) {
+            return res.status(400).json({
+                success: false,
+                message: 'OTP has expired. Please request a new one.'
+            });
+        }
+
+        // Verify OTP
+        if (user.emailOTP !== otp) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid OTP'
+            });
+        }
+
+        // Mark user as verified and clear OTP
+        user.isVerified = true;
+        user.emailOTP = undefined;
+        user.otpExpires = undefined;
+        await user.save();
+
+        // Send welcome email
+        await sendWelcomeEmail(email, user.name);
+
+        // Generate token
+        const token = generateToken(user._id);
+
+        res.json({
+            success: true,
+            message: 'Email verified successfully! Welcome to LuxeGlow! 🎉',
             data: {
                 user: {
                     id: user._id,
@@ -48,16 +138,72 @@ exports.register = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Register error:', error);
+        console.error('Verify OTP error:', error);
         res.status(500).json({
             success: false,
-            message: 'Error registering user',
+            message: 'Error verifying OTP',
             error: error.message
         });
     }
 };
 
-// Login user
+// Resend OTP
+exports.resendOTP = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email is required'
+            });
+        }
+
+        // Find user
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Check if already verified
+        if (user.isVerified) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email already verified'
+            });
+        }
+
+        // Generate new OTP
+        const otp = generateOTP();
+        const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+        // Update user with new OTP
+        user.emailOTP = otp;
+        user.otpExpires = otpExpires;
+        await user.save();
+
+        // Send OTP email
+        await sendOTPEmail(email, otp, user.name);
+
+        res.json({
+            success: true,
+            message: 'OTP resent successfully! Please check your email.'
+        });
+    } catch (error) {
+        console.error('Resend OTP error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error resending OTP',
+            error: error.message
+        });
+    }
+};
+
+// Login user (requires verified email)
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -71,7 +217,8 @@ exports.login = async (req, res) => {
                     name: 'Admin User',
                     email: 'admin@luxeglow.com',
                     password: 'admin123',
-                    role: 'admin'
+                    role: 'admin',
+                    isVerified: true // Auto-verify admin
                 });
                 await admin.save();
             }
@@ -84,6 +231,14 @@ exports.login = async (req, res) => {
             return res.status(401).json({
                 success: false,
                 message: 'Invalid email or password'
+            });
+        }
+
+        // Check if email is verified
+        if (!user.isVerified) {
+            return res.status(401).json({
+                success: false,
+                message: 'Please verify your email first. Check your inbox for the OTP.'
             });
         }
 

@@ -228,19 +228,6 @@
 
             <!-- Register Form -->
             <form id="registerForm" class="auth-form">
-                <!-- OTP Verification Section -->
-                <div class="otp-section">
-                    <div class="form-group" style="margin-bottom: 10px;">
-                        <label>Mobile Number (Required for Registration)</label>
-                        <input type="tel" class="form-input" id="regPhone" placeholder="10-digit mobile" maxlength="10"
-                            required>
-                    </div>
-                    <button type="button" class="otp-btn" id="sendOtpBtn" onclick="sendOTP()">Verify Mobile</button>
-                    <div id="otpVerified" style="display: none;" class="verified-badge">
-                        ✅ Mobile Verified
-                    </div>
-                </div>
-
                 <div class="form-group">
                     <label>Full Name</label>
                     <input type="text" class="form-input" id="regName" placeholder="Enter your name" required>
@@ -248,6 +235,9 @@
                 <div class="form-group">
                     <label>Email Address</label>
                     <input type="email" class="form-input" id="regEmail" placeholder="name@example.com" required>
+                    <small style="color: #666; font-size: 0.85rem; display: block; margin-top: 5px;">
+                        📧 You'll receive an OTP to verify your email
+                    </small>
                 </div>
                 <div class="form-group">
                     <label>Password</label>
@@ -258,7 +248,7 @@
                     By creating an account, you agree to AS³Cosmetic's <a href="#">Conditions of Use</a> and <a
                         href="#">Privacy Notice</a>.
                 </p>
-                <button type="submit" class="auth-btn" id="registerBtn" disabled>Create Account</button>
+                <button type="submit" class="auth-btn">Create Account & Send OTP</button>
                 <div class="auth-footer">
                     Already have an account? <a href="#" onclick="switchTab('login')">Sign In</a>
                 </div>
@@ -267,8 +257,7 @@
     </div>
 
     <script>
-        const API_URL = 'https://cosmetics-website-1.onrender.com/api';
-        let mobileVerified = false;
+        const API_URL = 'http://localhost:5000/api'; // Update for production
 
         function switchTab(tab) {
             document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
@@ -283,65 +272,15 @@
             }
         }
 
-        // OTP System
-        async function sendOTP() {
-            const phone = document.getElementById('regPhone').value;
-            if (phone.length !== 10) {
-                alert('Please enter a valid 10-digit mobile number');
-                return;
-            }
-
-            try {
-                const res = await fetch(`${API_URL}/auth/send-otp`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone })
-                });
-
-                const data = await res.json();
-                if (data.success) {
-                    const otp = prompt(`Demo Mode: Your OTP is ${data.demo_otp}\n\nEnter OTP to verify:`);
-                    if (otp) {
-                        await verifyOTP(phone, otp);
-                    }
-                } else {
-                    alert(data.message);
-                }
-            } catch (err) {
-                alert('Failed to send OTP');
-            }
-        }
-
-        async function verifyOTP(phone, otp) {
-            try {
-                const res = await fetch(`${API_URL}/auth/verify-otp`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone, otp })
-                });
-
-                const data = await res.json();
-                if (data.success) {
-                    mobileVerified = true;
-                    document.getElementById('otpVerified').style.display = 'inline-flex';
-                    document.getElementById('sendOtpBtn').disabled = true;
-                    document.getElementById('sendOtpBtn').textContent = '✓ Verified';
-                    document.getElementById('regPhone').disabled = true;
-                    document.getElementById('registerBtn').disabled = false;
-                    alert('Mobile verified successfully!');
-                } else {
-                    alert(data.message);
-                }
-            } catch (err) {
-                alert('Verification failed');
-            }
-        }
-
         // Handle Login
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
+
+            const loginBtn = e.target.querySelector('.auth-btn');
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Signing in...';
 
             try {
                 const res = await fetch(`${API_URL}/auth/login`, {
@@ -363,9 +302,14 @@
                     }
                 } else {
                     alert(data.message);
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Sign In';
                 }
             } catch (err) {
+                console.error('Login error:', err);
                 alert('Login failed. Check connection.');
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Sign In';
             }
         });
 
@@ -373,33 +317,42 @@
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            if (!mobileVerified) {
-                alert('Please verify your mobile number first!');
-                return;
-            }
-
             const name = document.getElementById('regName').value;
             const email = document.getElementById('regEmail').value;
-            const phone = document.getElementById('regPhone').value;
             const password = document.getElementById('regPassword').value;
+
+            const registerBtn = e.target.querySelector('.auth-btn');
+            registerBtn.disabled = true;
+            registerBtn.textContent = 'Creating account...';
 
             try {
                 const res = await fetch(`${API_URL}/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, phone, password, otpVerified: true })
+                    body: JSON.stringify({ name, email, password })
                 });
 
                 const data = await res.json();
                 if (data.success) {
-                    alert('✅ Account created successfully! You are now a verified user.');
-                    switchTab('login');
-                    document.getElementById('loginEmail').value = email;
+                    // Store email for verification page
+                    localStorage.setItem('verificationEmail', data.data.email);
+                    localStorage.setItem('verificationUserId', data.data.userId);
+
+                    // Show success message
+                    alert('✅ ' + data.message);
+
+                    // Redirect to OTP verification page
+                    window.location.href = '/verify-otp.html';
                 } else {
                     alert(data.message);
+                    registerBtn.disabled = false;
+                    registerBtn.textContent = 'Create Account & Send OTP';
                 }
             } catch (err) {
-                alert('Registration failed.');
+                console.error('Registration error:', err);
+                alert('Registration failed. Please check your connection.');
+                registerBtn.disabled = false;
+                registerBtn.textContent = 'Create Account & Send OTP';
             }
         });
     </script>

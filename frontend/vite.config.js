@@ -14,7 +14,8 @@ export default defineConfig({
                 auth: resolve(__dirname, 'auth.html'),
                 checkout: resolve(__dirname, 'checkout.html'),
                 profile: resolve(__dirname, 'profile.html'),
-                product: resolve(__dirname, 'product.html')
+                product: resolve(__dirname, 'product.html'),
+                verify_otp: resolve(__dirname, 'verify-otp.html')
             }
         }
     },

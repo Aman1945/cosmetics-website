@@ -283,7 +283,7 @@ img {
   left: 0;
   right: 0;
   z-index: 1000;
-  padding: var(--spacing-md) 0;
+  padding: 0.75rem 0;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid #eee;
@@ -291,7 +291,7 @@ img {
 }
 
 .navbar.scrolled {
-  padding: var(--spacing-sm) 0;
+  padding: 0.5rem 0;
   background: rgba(255, 255, 255, 0.98);
   box-shadow: var(--shadow-md);
 }
@@ -305,8 +305,8 @@ img {
 
 .logo {
   font-family: var(--font-heading);
-  font-size: 1.75rem;
-  letter-spacing: 2px;
+  font-size: 1.35rem;
+  letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--primary);
   font-weight: 700;

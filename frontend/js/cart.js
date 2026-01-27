@@ -122,12 +122,11 @@ async function loadRecommendations() {
 
 function renderRecommendUI(products) {
     document.getElementById('recommendGrid').innerHTML = products.map(p => `
-        <div class="recommend-card">
-            <span style="font-size: 0.75rem; background: #fff0f5; color: #fc2779; padding: 2px 8px; border-radius: 20px; font-weight: 600;">Based on your interest</span>
-            <img src="${p.images[0]?.url}" alt="${p.name}" style="margin-top: 10px;">
+        <div class="recommend-card" onclick="window.location.href='./product.html?id=${p._id}'" style="cursor: pointer;">
+            <img src="${p.images[0]?.url}" alt="${p.name}">
             <h4>${p.name}</h4>
             <p class="price">₹${p.price.toLocaleString()}</p>
-            <button class="btn btn-sm btn-primary" onclick="quickAdd('${p._id}', '${p.name}', ${p.price}, '${p.images[0]?.url}')">
+            <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); quickAdd('${p._id}', '${p.name}', ${p.price}, '${p.images[0]?.url}')">
                 + Add also
             </button>
         </div>

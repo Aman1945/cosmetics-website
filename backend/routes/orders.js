@@ -9,13 +9,13 @@ const {
     getAllOrders
 } = require('../controllers/orderController');
 
+// Admin routes (must come first!)
+router.get('/', auth, adminAuth, getAllOrders);
+router.put('/:id', auth, adminAuth, updateOrderStatus);
+
 // User routes
 router.post('/', auth, createOrder);
 router.get('/my-orders', auth, getUserOrders);
 router.get('/:id', auth, getOrderById);
-
-// Admin routes
-router.get('/', auth, adminAuth, getAllOrders);
-router.put('/:id/status', auth, adminAuth, updateOrderStatus);
 
 module.exports = router;

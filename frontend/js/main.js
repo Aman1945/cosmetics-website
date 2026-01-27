@@ -395,6 +395,10 @@ function initViewAll() {
     });
 }
 function initNavigationProtection() {
+    // DISABLED: This was causing annoying "Leave site?" dialogs on internal navigation
+    // Only enable if you want to warn users when closing the browser tab/window
+
+    /* 
     window.addEventListener('beforeunload', (e) => {
         if (state.user || state.cart.length > 0) {
             // Standard browser confirmation
@@ -402,9 +406,7 @@ function initNavigationProtection() {
             e.returnValue = '';
         }
     });
-
-    // Optional: Intercept internal link clicks if needed, 
-    // but beforeunload handles the most critical 'browser exit' cases.
+    */
 }
 
 function initForms() { }

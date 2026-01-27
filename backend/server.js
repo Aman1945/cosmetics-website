@@ -9,6 +9,7 @@ const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
 const orderRoutes = require('./routes/orders');
 const offerRoutes = require('./routes/offers');
+const adminRoutes = require('./routes/admin');
 
 // Load Models
 const Product = require('./models/Product');
@@ -119,8 +120,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/offers', offerRoutes);
+app.use('/api/admin', adminRoutes);
 
-// Additional Admin Routes (if not in modular routes)
+// Additional Admin Routes - NOW IN routes/admin.js
+/*
 app.get('/api/admin/analytics', auth, adminAuth, async (req, res) => {
     try {
         const cachedAnalytics = analyticsCache.get('admin_stats');
@@ -160,6 +163,7 @@ app.get('/api/admin/users', auth, adminAuth, async (req, res) => {
         res.status(500).json({ success: false, message: e.message });
     }
 });
+*/
 
 app.put('/api/admin/users/:id', auth, adminAuth, async (req, res) => {
     try {

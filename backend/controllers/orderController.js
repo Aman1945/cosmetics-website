@@ -141,11 +141,17 @@ exports.getOrderById = async (req, res) => {
 // Update order status (admin only)
 exports.updateOrderStatus = async (req, res) => {
     try {
-        const { orderStatus, trackingNumber } = req.body;
+        const { status, orderStatus, trackingNumber } = req.body;
+
+        // Accept either 'status' or 'orderStatus'
+        const newStatus = status || orderStatus;
 
         const order = await Order.findByIdAndUpdate(
             req.params.id,
-            { orderStatus, trackingNumber },
+            {
+                status: newStatus,
+                trackingNumber
+            },
             { new: true }
         );
 
@@ -174,10 +180,10 @@ exports.updateOrderStatus = async (req, res) => {
 // Get all orders (admin only)
 exports.getAllOrders = async (req, res) => {
     try {
-        const { status, page = 1, limit = 20 } = req.query;
+        const { status, page = 1, limit = 100 } = req.query;
 
         const query = {};
-        if (status) query.orderStatus = status;
+        if (status) query.status = status;
 
         const skip = (page - 1) * limit;
         const orders = await Order.find(query)

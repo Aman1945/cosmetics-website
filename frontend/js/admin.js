@@ -57,16 +57,24 @@ function initLogin() {
                 localStorage.setItem('adminToken', result.data.token);
                 state.isAuthenticated = true;
 
-                gsap.to('#loginOverlay', {
-                    opacity: 0,
-                    duration: 0.5,
-                    onComplete: () => {
-                        document.getElementById('loginOverlay').style.display = 'none';
-                        document.getElementById('adminContainer').style.display = 'flex';
-                        gsap.from('.admin-container', { opacity: 0, y: 20, duration: 0.5 });
-                        loadDashboardData();
-                    }
-                });
+                // Safe GSAP animation with fallback
+                if (typeof gsap !== 'undefined') {
+                    gsap.to('#loginOverlay', {
+                        opacity: 0,
+                        duration: 0.5,
+                        onComplete: () => {
+                            document.getElementById('loginOverlay').style.display = 'none';
+                            document.getElementById('adminContainer').style.display = 'flex';
+                            gsap.from('.admin-container', { opacity: 0, y: 20, duration: 0.5 });
+                            loadDashboardData();
+                        }
+                    });
+                } else {
+                    // Fallback without GSAP
+                    document.getElementById('loginOverlay').style.display = 'none';
+                    document.getElementById('adminContainer').style.display = 'flex';
+                    loadDashboardData();
+                }
             } else {
                 alert(result.message || 'Access Denied: Not an admin!');
             }
@@ -99,7 +107,10 @@ function initNavigation() {
                 view.style.display = 'none';
                 if (view.id === viewId) {
                     view.style.display = 'block';
-                    gsap.from(view, { opacity: 0, y: 10, duration: 0.3 });
+                    // Safe GSAP animation
+                    if (typeof gsap !== 'undefined') {
+                        gsap.from(view, { opacity: 0, y: 10, duration: 0.3 });
+                    }
                 }
             });
 
@@ -118,12 +129,15 @@ async function loadDashboardData() {
     const cachedStats = JSON.parse(localStorage.getItem('admin_stats_cache'));
     if (cachedStats) {
         updateStatsUI(cachedStats.summary);
-        renderRecentOrders(cachedStats.recentOrders);
+        renderRecentOrders(cachedStats.recentOrders || []);
     } else {
         // Show placeholders
-        document.getElementById('recentOrdersTableBody').innerHTML = Array(3).fill(0).map(() => `
-            <tr><td colspan="5"><div class="skeleton skeleton-text"></div></td></tr>
-        `).join('');
+        const tbody = document.getElementById('recentOrdersTableBody');
+        if (tbody) {
+            tbody.innerHTML = Array(3).fill(0).map(() => `
+                <tr><td colspan="5"><div class="skeleton skeleton-text"></div></td></tr>
+            `).join('');
+        }
     }
 
     try {
@@ -140,11 +154,12 @@ async function loadDashboardData() {
             localStorage.setItem('admin_stats_cache', JSON.stringify(data.data));
             loadProducts();
         } else {
-            alert('Failed to load dashboard data: ' + (data.message || 'Unknown error'));
+            console.error('Dashboard load failed:', data.message);
+            // Don't show alert, just log error
         }
     } catch (error) {
         console.error('Analytics error:', error);
-        alert('Error loading dashboard data. Please check your connection.');
+        // Silently fail - cached data will still show
     }
 }
 

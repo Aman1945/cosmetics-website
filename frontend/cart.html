@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - AS³Cosmetic</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="./styles/main.css">
+    <style>
+        .cart-page-container {
+            max-width: 1200px;
+            margin: 120px auto 60px;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 40px;
+        }
+
+        @media (max-width: 992px) {
+            .cart-page-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .cart-items-section {
+            background: white;
+            padding: 30px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .cart-item-row {
+            display: grid;
+            grid-template-columns: 100px 1fr auto auto;
+            align-items: center;
+            gap: 20px;
+            padding: 20px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .cart-item-row:last-child {
+            border-bottom: none;
+        }
+
+        .cart-item-img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: var(--radius-sm);
+        }
+
+        .cart-item-info h3 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .cart-item-info p {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .qty-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #f8f9fa;
+            padding: 5px 15px;
+            border-radius: var(--radius-full);
+        }
+
+        .qty-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .cart-summary-section {
+            background: white;
+            padding: 30px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        .summary-total {
+            border-top: 2px solid #f0f0f0;
+            padding-top: 15px;
+            margin-top: 15px;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: var(--transition-normal);
+        }
+
+        .checkout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .recommendations-section {
+            grid-column: 1 / -1;
+            margin-top: 60px;
+        }
+
+        .recommend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .recommend-card {
+            background: white;
+            padding: 15px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+            transition: var(--transition-normal);
+        }
+
+        .recommend-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .recommend-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: var(--radius-sm);
+            margin-bottom: 15px;
+        }
+
+        .recommend-card h4 {
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        .recommend-card .price {
+            color: var(--gold);
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .remove-item {
+            color: #ff4d4d;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="container nav-container">
+            <a href="./index.html" class="logo">
+                <h1>AS<span>3</span>Cosmetic</h1>
+            </a>
+            <div class="nav-links" id="navMenu">
+                <a href="./index.html">Home</a>
+                <a href="./index.html#products">Shop</a>
+                <a href="./index.html#blog">Beauty Blog</a>
+                <a href="./index.html#about">About</a>
+            </div>
+            <div class="nav-actions">
+                <button class="nav-icon" id="searchBtn">🔍</button>
+                <div class="cart-icon-wrapper">
+                    <button class="nav-icon" onclick="window.location.href='./cart.html'">🛒</button>
+                    <span class="cart-badge" id="cartBadge">0</span>
+                </div>
+                <button class="btn btn-primary" id="loginBtn">Login</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="cart-page-container">
+        <!-- Main Cart Items -->
+        <div class="cart-items-section">
+            <h2 style="margin-bottom: 30px; font-family: 'Playfair Display', serif;">Your Shopping Cart</h2>
+            <div id="cartList">
+                <!-- Items injected here -->
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="cart-summary-section">
+            <h3 style="margin-bottom: 25px;">Order Summary</h3>
+            <div class="summary-row">
+                <span>Subtotal</span>
+                <span id="subtotal">₹0</span>
+            </div>
+            <div class="summary-row">
+                <span>Shipping</span>
+                <span style="color: var(--success);">FREE</span>
+            </div>
+            <div class="summary-row">
+                <span>Tax (GST)</span>
+                <span id="tax">₹0</span>
+            </div>
+            <div class="summary-row summary-total">
+                <span>Total Amount</span>
+                <span id="totalAmount">₹0</span>
+            </div>
+            <button class="checkout-btn" onclick="window.location.href='./checkout.html'">Proceed to Checkout</button>
+            <p style="text-align: center; margin-top: 15px; font-size: 0.85rem; color: var(--gray);">
+                Secure SSL Encrypted Payment
+            </p>
+        </div>
+
+        <!-- Personalized Recommendations -->
+        <div class="recommendations-section">
+            <h2 style="font-family: 'Playfair Display', serif;">Recommended For You</h2>
+            <p style="color: var(--gray);">Other customers also bought these premium items</p>
+            <div class="recommend-grid" id="recommendGrid">
+                <!-- Recommendations injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer copied from index -->
+    <footer class="footer">
+        <div class="container footer-container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <a href="#" class="logo footer-logo">
+                        <h1>AS<span>3</span>Cosmetic</h1>
+                    </a>
+                    <p class="footer-text">Elevating beauty through science and luxury. Your premier destination for
+                        professional cosmetic solutions.</p>
+                </div>
+                <!-- ... other cols ... -->
+            </div>
+        </div>
+    </footer>
+
+    <script src="./js/cart.js"></script>
+</body>
+
+</html>

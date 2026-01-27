@@ -287,7 +287,9 @@ window.addToCart = function (productId) {
     else state.cart.push({ productId: product._id, name: product.name, price: product.price, image: product.images[0]?.url, quantity: 1 });
     localStorage.setItem('cart', JSON.stringify(state.cart));
     updateCartBadge();
-    showNotification('Added to Bag! ✨');
+
+    // Amazon/Flipkart style: Go to cart page immediately
+    window.location.href = './cart.html';
 };
 
 function updateCartBadge() {
@@ -308,12 +310,8 @@ function initLoginModal() {
 function initCart() {
     const cartBtn = document.getElementById('cartBtn');
     cartBtn?.addEventListener('click', () => {
-        document.getElementById('cartSidebar')?.classList.add('active');
-        document.getElementById('modalOverlay')?.classList.add('active');
-        renderCart();
+        window.location.href = './cart.html';
     });
-    document.getElementById('closeCart')?.addEventListener('click', closeCart);
-    document.getElementById('modalOverlay')?.addEventListener('click', closeCart);
 }
 
 function closeCart() {

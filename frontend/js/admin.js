@@ -1,9 +1,11 @@
 // Admin Panel Logic
 
-const LIVE_API = 'https://cosmetics-website-1.onrender.com/api';
+const PROD_API = 'https://cosmetics-website-1.onrender.com/api';
+const ENV_API = import.meta.env?.VITE_API_URL;
+
 const API_URL = (['localhost', '127.0.0.1', '::1'].includes(window.location.hostname) || window.location.hostname.startsWith('192.168.'))
     ? `http://${window.location.hostname || 'localhost'}:5000/api`
-    : LIVE_API; // Always use full Live URL in production
+    : (ENV_API || PROD_API);
 
 console.log('Admin API connected to:', API_URL);
 

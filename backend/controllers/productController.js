@@ -1,9 +1,20 @@
 const Product = require('../models/Product');
+const NodeCache = require('node-cache');
+const productCache = new NodeCache({ stdTTL: 300 }); // Cache for 5 minutes
 
 // Get all products with filtering and pagination
 exports.getAllProducts = async (req, res) => {
     try {
         const { category, brand, minPrice, maxPrice, search, sort, page = 1, limit = 12 } = req.query;
+
+        // Create a unique cache key based on query parameters
+        const cacheKey = `products_${JSON.stringify(req.query)}`;
+        const cachedData = productCache.get(cacheKey);
+
+        if (cachedData) {
+            console.log('Serving from cache:', cacheKey);
+            return res.json(cachedData);
+        }
 
         // Build query
         const query = { isActive: true };
@@ -47,7 +58,7 @@ exports.getAllProducts = async (req, res) => {
 
         const total = await Product.countDocuments(query);
 
-        res.json({
+        const responseData = {
             success: true,
             data: {
                 products,
@@ -58,7 +69,12 @@ exports.getAllProducts = async (req, res) => {
                     pages: Math.ceil(total / limit)
                 }
             }
-        });
+        };
+
+        // Store in cache
+        productCache.set(cacheKey, responseData);
+
+        res.json(responseData);
     } catch (error) {
         console.error('Get products error:', error);
         res.status(500).json({
@@ -122,6 +138,7 @@ exports.createProduct = async (req, res) => {
         const product = new Product(req.body);
         await product.save();
 
+        productCache.flushAll(); // Clear cache for new data
         res.status(201).json({
             success: true,
             message: 'Product created successfully',
@@ -153,6 +170,7 @@ exports.updateProduct = async (req, res) => {
             });
         }
 
+        productCache.flushAll(); // Clear cache for updated data
         res.json({
             success: true,
             message: 'Product updated successfully',
@@ -184,6 +202,7 @@ exports.deleteProduct = async (req, res) => {
             });
         }
 
+        productCache.flushAll(); // Clear cache for deleted data
         res.json({
             success: true,
             message: 'Product deleted successfully'

@@ -168,50 +168,20 @@ function renderOffers(offers) {
 async function loadProducts(category = 'all', limit = 12) {
     state.currentCategory = category;
 
-    // Clear cache to ensure fresh data
-    const cacheKey = `cached_products_${category}_${limit}`;
-    renderSkeletons();
-
     try {
         let url = `${API_URL}/products?limit=${limit}`;
         if (category !== 'all') url += `&category=${category}`;
 
-        let response;
-        try {
-            response = await fetch(url);
-            if (!response.ok) throw new Error('Local API failed');
-        } catch (e) {
-            console.warn('Local API failed, retrying with LIVE API...');
-            url = `${LIVE_API}/products?limit=${limit}`;
-            if (category !== 'all') url += `&category=${category}`;
-            response = await fetch(url);
-        }
-
+        // Simple fetch without complex fallback/skeletons as requested
+        const response = await fetch(url);
         const data = await response.json();
 
         if (data.success && data.data && data.data.products) {
             state.products = data.data.products;
             renderProducts(state.products);
-
-            const grid = document.getElementById('productsGrid');
-            const total = data.data.pagination?.total || state.products.length;
-            const existingInfo = document.getElementById('productResultsInfo');
-            if (existingInfo) existingInfo.remove();
-
-            const info = document.createElement('div');
-            info.id = 'productResultsInfo';
-            info.style.cssText = 'grid-column: 1/-1; text-align: left; margin-bottom: 20px; font-weight: 500; border-bottom: 1px solid #eee; padding-bottom: 10px; color: #1a1a1a;';
-            info.innerHTML = `Showing <b>${state.products.length}</b> of <b>${total}</b> products in <b>${category.toUpperCase()}</b>`;
-            grid?.parentElement.insertBefore(info, grid);
         }
     } catch (error) {
-        console.error('Final API Error:', error);
-        const grid = document.getElementById('productsGrid');
-        if (grid) grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:50px;">
-            <h3 style="color:#d32f2f">Bhai! Connection blocked by Browser?</h3>
-            <p>Please use "Right Click -> Open with Live Server" in VS Code or try a different browser.</p>
-            <p style="font-size:0.8rem; color:#666">${error.message}</p>
-        </div>`;
+        console.error('API Load Error:', error);
     }
 }
 

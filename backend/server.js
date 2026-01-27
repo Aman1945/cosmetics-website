@@ -27,6 +27,7 @@ dotenv.config();
 const app = express();
 
 // Security Headers
+/*
 app.use(helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
     contentSecurityPolicy: {
@@ -42,6 +43,7 @@ app.use(helmet({
         },
     }
 }));
+*/
 
 // Restricted CORS
 const allowedOrigins = [

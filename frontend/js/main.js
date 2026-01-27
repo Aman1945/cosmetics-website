@@ -2,7 +2,10 @@ import * as THREE from 'three';
 import { gsap } from 'gsap';
 
 // API Configuration - Using direct Render URL
-const API_URL = 'https://cosmetics-website-1.onrender.com/api';
+// API Configuration
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api'
+    : 'https://cosmetics-website-1.onrender.com/api';
 
 // State Management
 const state = {
@@ -22,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     init3DHero();
     loadProducts();
     initCart();
+    initFilters(); // Added filter initialization
     initForms();
     initScrollAnimations();
     updateCartBadge();
@@ -68,9 +72,9 @@ function initSearch() {
         `;
         overlay.innerHTML = `
             <div style="width: 100%; max-width: 600px; position: relative;">
-                <input type="text" id="searchInput" placeholder="What are you looking for?" 
-                    style="width: 100%; padding: 20px; font-size: 1.5rem; border: none; border-bottom: 2px solid #fc2779; outline: none; background: transparent;">
-                <button id="closeSearch" style="position: absolute; right: 0; top: -50px; background: none; border: none; font-size: 2.5rem; cursor: pointer; color: #fc2779;">&times;</button>
+                <input type="text" id="searchInput" placeholder="Search Professional Beauty..." 
+                    style="width: 100%; padding: 20px; font-size: 1.5rem; border: none; border-bottom: 2px solid var(--secondary); outline: none; background: transparent;">
+                <button id="closeSearch" style="position: absolute; right: 0; top: -50px; background: none; border: none; font-size: 2.5rem; cursor: pointer; color: var(--primary);">&times;</button>
             </div>
             <div id="searchResults" style="margin-top: 30px; width: 100%; max-width: 800px; max-height: 60vh; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px;"></div>
         `;
@@ -115,39 +119,73 @@ function initSearch() {
 
 async function loadProducts(category = 'all') {
     try {
+        state.currentCategory = category;
         let url = `${API_URL}/products`;
         if (category !== 'all') url += `?category=${category}`;
+
         const response = await fetch(url);
         const data = await response.json();
+
         if (data.success) {
             state.products = data.data.products;
             renderProducts(state.products);
         }
-    } catch (error) { console.error('API Error:', error); }
+    } catch (error) {
+        console.error('API Error:', error);
+    }
+}
+
+function initFilters() {
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Update UI
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Reload data
+            const category = btn.dataset.category;
+            loadProducts(category);
+        });
+    });
 }
 
 function renderProducts(products) {
     const grid = document.getElementById('productsGrid');
     if (!grid) return;
+
+    if (products.length === 0) {
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 50px; color: var(--gray);">No products found in this category.</div>';
+        return;
+    }
+
     grid.innerHTML = products.map(product => `
         <div class="product-card" data-product-id="${product._id}">
             <div class="product-image" onclick="window.location.href='/product.html?id=${product._id}'" style="cursor: pointer;">
-                <img src="${product.images[0]?.url}" alt="${product.name}">
+                <img src="${product.images?.[0]?.url}" alt="${product.name}">
+                ${product.isFeatured ? '<span class="product-badge">BESTSELLER</span>' : ''}
             </div>
             <div class="product-info">
                 <div class="product-category">${product.category}</div>
                 <h3 class="product-name" onclick="window.location.href='/product.html?id=${product._id}'" style="cursor: pointer;">${product.name}</h3>
                 <div class="product-footer">
                     <div class="product-price">₹${product.price.toLocaleString()}</div>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart('${product._id}')" title="Add to Cart">+</button>
-                        <button class="add-to-cart-btn" onclick="event.stopPropagation(); toggleFavorite('${product._id}')" style="background: ${isFavorite(product._id) ? '#fc2779' : 'white'}; color: ${isFavorite(product._id) ? 'white' : '#fc2779'}; border: 2px solid #fc2779;" title="Favorite">${isFavorite(product._id) ? '♥' : '♡'}</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart('${product._id}')" title="Add to Bag">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/></svg>
+                        </button>
+                        <button class="add-to-cart-btn" onclick="event.stopPropagation(); toggleFavorite('${product._id}')" 
+                            style="background: ${isFavorite(product._id) ? 'var(--secondary)' : 'white'}; 
+                                   color: ${isFavorite(product._id) ? 'white' : 'var(--secondary)'}; 
+                                   border: 1px solid var(--secondary);" title="Favorite">
+                            ${isFavorite(product._id) ? '♥' : '♡'}
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     `).join('');
-    gsap.from('.product-card', { opacity: 0, y: 30, stagger: 0.1, duration: 0.5 });
+    gsap.from('.product-card', { opacity: 0, y: 30, stagger: 0.05, duration: 0.4 });
 }
 
 function isFavorite(id) {
@@ -227,7 +265,7 @@ function renderCart() {
                 <h4 style="font-size:0.9rem;">${i.name}</h4>
                 <p style="font-size:0.8rem; color:#666;">₹${i.price} x ${i.quantity}</p>
             </div>
-            <button onclick="removeFromCart('${i.productId}')" style="background:none; border:none; color:#fc2779; cursor:pointer; font-size:1.2rem;">&times;</button>
+            <button onclick="removeFromCart('${i.productId}')" style="background:none; border:none; color:var(--primary); cursor:pointer; font-size:1.2rem;">&times;</button>
         </div>
     `).join('');
     const total = state.cart.reduce((s, i) => s + (i.price * i.quantity), 0);
@@ -273,7 +311,7 @@ function init3DHero() {
 
 function showNotification(msg) {
     const div = document.createElement('div');
-    div.style.cssText = 'position:fixed; bottom:30px; right:30px; background:#fc2779; color:#fff; padding:15px 25px; border-radius:10px; z-index:99999; box-shadow:0 5px 20px rgba(0,0,0,0.1); animation:slideUp 0.3s;';
+    div.style.cssText = 'position:fixed; bottom:30px; right:30px; background:var(--primary); color:#fff; padding:15px 25px; border-radius:10px; z-index:99999; box-shadow:var(--shadow-lg); border-left: 5px solid var(--secondary); animation:slideUp 0.3s;';
     div.textContent = msg;
     document.body.appendChild(div);
     setTimeout(() => { div.style.opacity = '0'; setTimeout(() => div.remove(), 500); }, 2500);

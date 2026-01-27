@@ -63,8 +63,8 @@
         }
 
         .auth-tab.active {
-            color: #fc2779;
-            border-bottom: 2px solid #fc2779;
+            color: var(--secondary);
+            border-bottom: 2px solid var(--secondary);
             margin-bottom: -2px;
         }
 
@@ -105,7 +105,7 @@
         .auth-btn {
             width: 100%;
             padding: 16px;
-            background: linear-gradient(135deg, #fc2779, #ff5e9e);
+            background: var(--gradient-primary);
             color: white;
             border: none;
             border-radius: 12px;
@@ -118,7 +118,8 @@
 
         .auth-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(252, 39, 121, 0.3);
+            box-shadow: var(--shadow-md);
+            background: var(--primary-dark);
         }
 
         .auth-footer {
@@ -129,7 +130,7 @@
         }
 
         .auth-footer a {
-            color: #fc2779;
+            color: var(--secondary);
             text-decoration: none;
             font-weight: 600;
         }
@@ -257,7 +258,9 @@
     </div>
 
     <script>
-        const API_URL = 'https://cosmetics-website-1.onrender.com/api';
+        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:5000/api'
+            : 'https://cosmetics-website-1.onrender.com/api';
 
         function switchTab(tab) {
             document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));

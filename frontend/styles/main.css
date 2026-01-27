@@ -1,14 +1,15 @@
 :root {
-  /* Premium Color Palette - Inspired by Nykaa & Sugar */
-  --primary: #FC2779;
-  --primary-dark: #E80071;
-  --primary-light: #FF4D94;
-  --secondary: #6C5CE7;
-  --secondary-dark: #5849D4;
-  --accent: #00CED1;
-  --gold: #FFB800;
-  --success: #00D084;
-  --warning: #FF6B35;
+  /* Professional Luxury Color Palette - L'Oreal Inspired */
+  --primary: #000000;
+  --primary-dark: #1a1a1a;
+  --primary-light: #333333;
+  --secondary: #C5A059;
+  /* Classic Gold */
+  --secondary-dark: #A68641;
+  --accent: #FFFFFF;
+  --gold: #C5A059;
+  --success: #2ecc71;
+  --warning: #f1c40f;
 
   /* Neutrals */
   --dark: #0F0F1E;
@@ -20,11 +21,11 @@
   --off-white: #F8F9FA;
 
   /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #FC2779 0%, #E80071 100%);
-  --gradient-secondary: linear-gradient(135deg, #00CED1 0%, #6C5CE7 100%);
-  --gradient-gold: linear-gradient(135deg, #FFB800 0%, #FF8C00 100%);
-  --gradient-dark: linear-gradient(180deg, #0F0F1E 0%, #1A1A2E 100%);
-  --gradient-success: linear-gradient(135deg, #00D084 0%, #00A86B 100%);
+  --gradient-primary: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+  --gradient-secondary: linear-gradient(135deg, #C5A059 0%, #A68641 100%);
+  --gradient-gold: linear-gradient(135deg, #C5A059 0%, #D4AF37 100%);
+  --gradient-dark: linear-gradient(180deg, #000000 0%, #1a1a1a 100%);
+  --gradient-success: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
 
   /* Glass Effect */
   --glass-bg: rgba(255, 255, 255, 0.05);
@@ -176,9 +177,9 @@ img {
 }
 
 .btn-primary {
-  background: var(--gradient-primary);
+  background: var(--primary);
   color: var(--white);
-  box-shadow: 0 4px 15px rgba(233, 75, 140, 0.4);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .btn-primary:hover {
@@ -258,10 +259,10 @@ img {
 .logo {
   font-family: var(--font-heading);
   font-size: 1.75rem;
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--primary);
+  font-weight: 700;
 }
 
 .nav-menu {
@@ -672,12 +673,15 @@ img {
 
 .product-card {
   background: var(--white);
-  border: 1px solid #eee;
+  /* Solid white background */
+  border: 1px solid rgba(0, 0, 0, 0.05);
   border-radius: var(--radius-lg);
   overflow: hidden;
   transition: all var(--transition-normal);
   cursor: pointer;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
 }
 
 .product-card:hover {
@@ -730,9 +734,16 @@ img {
 }
 
 .product-name {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   margin-bottom: 0.5rem;
-  color: var(--dark);
+  color: #1a1a1a;
+  /* Dark solid black for name */
+  font-weight: 600;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.8rem;
 }
 
 .product-rating {

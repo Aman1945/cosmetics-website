@@ -82,23 +82,56 @@ function updateBadge() {
 
 async function loadRecommendations() {
     try {
-        const res = await fetch(`${API_URL}/products?limit=4&isFeatured=true`);
+        // --- SMART ALGORITHM ---
+        const interests = JSON.parse(localStorage.getItem('interests')) || {};
+        const cartCategories = [...new Set(state.cart.map(i => i.category || ''))].filter(Boolean);
+
+        // Find most interested category
+        let bestCategory = Object.keys(interests).reduce((a, b) => interests[a] > interests[b] ? a : b, null);
+
+        // If nothing in interests, try cart categories
+        if (!bestCategory && cartCategories.length > 0) {
+            bestCategory = cartCategories[0];
+        }
+
+        let url = `${API_URL}/products?limit=4`;
+        if (bestCategory) {
+            url += `&category=${bestCategory}`;
+            console.log('🤖 Algorithm recommending category:', bestCategory);
+        } else {
+            url += `&isFeatured=true`;
+            console.log('🤖 Fallback: Recommending featured products');
+        }
+
+        const res = await fetch(url);
         const data = await res.json();
         if (data.success) {
-            document.getElementById('recommendGrid').innerHTML = data.data.products.map(p => `
-                <div class="recommend-card">
-                    <img src="${p.images[0]?.url}" alt="${p.name}">
-                    <h4>${p.name}</h4>
-                    <p class="price">₹${p.price.toLocaleString()}</p>
-                    <button class="btn btn-sm btn-primary" onclick="quickAdd('${p._id}', '${p.name}', ${p.price}, '${p.images[0]?.url}')">
-                        + Add also
-                    </button>
-                </div>
-            `).join('');
+            const container = document.getElementById('recommendGrid');
+            if (data.data.products.length === 0) {
+                // Final fallback if category fetch returns empty
+                return fetch(`${API_URL}/products?limit=4&isFeatured=true`)
+                    .then(r => r.json())
+                    .then(d => renderRecommendUI(d.data.products));
+            }
+            renderRecommendUI(data.data.products);
         }
     } catch (e) {
         console.error('Recommendations failed:', e);
     }
+}
+
+function renderRecommendUI(products) {
+    document.getElementById('recommendGrid').innerHTML = products.map(p => `
+        <div class="recommend-card">
+            <span style="font-size: 0.75rem; background: #fff0f5; color: #fc2779; padding: 2px 8px; border-radius: 20px; font-weight: 600;">Based on your interest</span>
+            <img src="${p.images[0]?.url}" alt="${p.name}" style="margin-top: 10px;">
+            <h4>${p.name}</h4>
+            <p class="price">₹${p.price.toLocaleString()}</p>
+            <button class="btn btn-sm btn-primary" onclick="quickAdd('${p._id}', '${p.name}', ${p.price}, '${p.images[0]?.url}')">
+                + Add also
+            </button>
+        </div>
+    `).join('');
 }
 
 window.quickAdd = (id, name, price, image) => {

@@ -162,6 +162,7 @@ function renderOffers(offers) {
 
 async function loadProducts(category = 'all', limit = 12) {
     state.currentCategory = category;
+    trackInterest(category);
 
     try {
         let url = `${API_URL}/products?limit=${limit}`;
@@ -268,23 +269,33 @@ function isFavorite(id) {
 
 window.toggleFavorite = function (id) {
     let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+    const product = state.products.find(p => p._id === id);
     if (favorites.includes(id)) {
         favorites = favorites.filter(fid => fid !== id);
         showNotification('Removed from favorites');
     } else {
         favorites.push(id);
+        if (product) trackInterest(product.category);
         showNotification('❤️ Added to favorites!');
     }
     localStorage.setItem('favorites', JSON.stringify(favorites));
     loadProducts(state.currentCategory);
 };
 
+function trackInterest(category) {
+    if (!category || category === 'all') return;
+    let interests = JSON.parse(localStorage.getItem('interests')) || {};
+    interests[category] = (interests[category] || 0) + 1;
+    localStorage.setItem('interests', JSON.stringify(interests));
+}
+
 window.addToCart = function (productId) {
     const product = state.products.find(p => p._id === productId);
     if (!product) return;
     const existing = state.cart.find(i => i.productId === productId);
     if (existing) existing.quantity++;
-    else state.cart.push({ productId: product._id, name: product.name, price: product.price, image: product.images[0]?.url, quantity: 1 });
+    else state.cart.push({ productId: product._id, name: product.name, price: product.price, image: product.images[0]?.url, category: product.category, quantity: 1 });
+    trackInterest(product.category);
     localStorage.setItem('cart', JSON.stringify(state.cart));
     updateCartBadge();
 

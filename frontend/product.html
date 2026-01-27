@@ -423,10 +423,12 @@
                     name: currentProduct.name,
                     price: currentProduct.price,
                     image: currentProduct.images[0]?.url,
+                    category: currentProduct.category,
                     quantity: 1
                 });
             }
 
+            trackInterest(currentProduct.category);
             localStorage.setItem('cart', JSON.stringify(cart));
             // Amazon style: Go to cart page
             window.location.href = './cart.html';
@@ -442,9 +444,17 @@
                 favorites.push(productId);
                 this.classList.add('active');
                 this.textContent = '♥';
+                trackInterest(currentProduct.category);
             }
             localStorage.setItem('favorites', JSON.stringify(favorites));
         });
+
+        function trackInterest(category) {
+            if (!category || category === 'all') return;
+            let interests = JSON.parse(localStorage.getItem('interests')) || {};
+            interests[category] = (interests[category] || 0) + 1;
+            localStorage.setItem('interests', JSON.stringify(interests));
+        }
 
         function updateCartBadge() {
             const cart = JSON.parse(localStorage.getItem('cart')) || [];

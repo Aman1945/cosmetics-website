@@ -168,28 +168,31 @@ function renderOffers(offers) {
 async function loadProducts(category = 'all', limit = 12) {
     state.currentCategory = category;
 
-    // Instant Load: Show cached products for this category
+    // Clear cache to ensure fresh data
     const cacheKey = `cached_products_${category}_${limit}`;
-    const cached = JSON.parse(localStorage.getItem(cacheKey));
-    if (cached && cached.length > 0) {
-        renderProducts(cached);
-    } else {
-        renderSkeletons();
-    }
+    renderSkeletons();
 
     try {
         let url = `${API_URL}/products?limit=${limit}`;
         if (category !== 'all') url += `&category=${category}`;
 
-        const response = await fetch(url);
+        let response;
+        try {
+            response = await fetch(url);
+            if (!response.ok) throw new Error('Local API failed');
+        } catch (e) {
+            console.warn('Local API failed, retrying with LIVE API...');
+            url = `${LIVE_API}/products?limit=${limit}`;
+            if (category !== 'all') url += `&category=${category}`;
+            response = await fetch(url);
+        }
+
         const data = await response.json();
 
-        if (data.success) {
+        if (data.success && data.data && data.data.products) {
             state.products = data.data.products;
             renderProducts(state.products);
-            localStorage.setItem(cacheKey, JSON.stringify(state.products));
 
-            // Add Info Bar
             const grid = document.getElementById('productsGrid');
             const total = data.data.pagination?.total || state.products.length;
             const existingInfo = document.getElementById('productResultsInfo');
@@ -199,10 +202,16 @@ async function loadProducts(category = 'all', limit = 12) {
             info.id = 'productResultsInfo';
             info.style.cssText = 'grid-column: 1/-1; text-align: left; margin-bottom: 20px; font-weight: 500; border-bottom: 1px solid #eee; padding-bottom: 10px; color: #1a1a1a;';
             info.innerHTML = `Showing <b>${state.products.length}</b> of <b>${total}</b> products in <b>${category.toUpperCase()}</b>`;
-            grid.parentElement.insertBefore(info, grid);
+            grid?.parentElement.insertBefore(info, grid);
         }
     } catch (error) {
-        console.error('API Error:', error);
+        console.error('Final API Error:', error);
+        const grid = document.getElementById('productsGrid');
+        if (grid) grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:50px;">
+            <h3 style="color:#d32f2f">Bhai! Connection blocked by Browser?</h3>
+            <p>Please use "Right Click -> Open with Live Server" in VS Code or try a different browser.</p>
+            <p style="font-size:0.8rem; color:#666">${error.message}</p>
+        </div>`;
     }
 }
 
@@ -233,7 +242,7 @@ function renderProducts(products) {
 
     grid.innerHTML = products.map(product => `
         <div class="product-card" data-category="${product.category}">
-            <div class="product-image-container" onclick="window.location.href='/product.html?id=${product._id}'" style="cursor: pointer;">
+            <div class="product-image-container" onclick="window.location.href='./product.html?id=${product._id}'" style="cursor: pointer;">
                 <img src="${product.images[0]?.url || 'https://via.placeholder.com/300'}" 
                      alt="${product.name}" 
                      class="product-image" 
@@ -243,7 +252,7 @@ function renderProducts(products) {
             </div>
             <div class="product-info">
                 <div class="product-category">${product.category}</div>
-                <h3 class="product-name" onclick="window.location.href='/product.html?id=${product._id}'" style="cursor: pointer;">${product.name}</h3>
+                <h3 class="product-name" onclick="window.location.href='./product.html?id=${product._id}'" style="cursor: pointer;">${product.name}</h3>
                 <div class="product-rating" style="margin-bottom: 8px; display: flex; align-items: center; gap: 5px;">
                     <span style="color: #ffc107;">★</span>
                     <span style="font-weight: 600; font-size: 0.85rem;">${product.rating?.average || '0.0'}</span>

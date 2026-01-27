@@ -10,7 +10,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="/styles/main.css">
+    <link rel="stylesheet" href="./styles/main.css">
     <style>
         .product-detail-container {
             max-width: 1400px;
@@ -270,57 +270,72 @@
             <div class="suggested-grid" id="suggestedGrid"></div>
         </div>
     </div>
+    <script>
+        const LIVE_API = 'https://cosmetics-website-1.onrender.com/api';
+        let API_URL = (['localhost', '127.0.0.1', '::1', ''].includes(window.location.hostname) ||
+            window.location.hostname.startsWith('192.168.'))
+            ? `http://${window.location.hostname || 'localhost'}:5000/api`
+            : LIVE_API;
 
-    const LIVE_API = 'https://cosmetics-website-1.onrender.com/api';
-    let API_URL = (['localhost', '127.0.0.1', '::1', ''].includes(window.location.hostname) ||
-    window.location.hostname.startsWith('192.168.'))
-    ? `http://${window.location.hostname || 'localhost'}:5000/api`
-    : LIVE_API;
+        // Test Local Connection
+        fetch(`${API_URL}/products/categories`).catch(() => {
+            API_URL = LIVE_API;
+        });
 
-    // Test Local Connection
-    fetch(`${API_URL}/products/categories`).catch(() => {
-    API_URL = LIVE_API;
-    });
+        let currentProduct = null;
+        let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
-    let currentProduct = null;
-    let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+        // Get product ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
 
-    // Get product ID from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const productId = urlParams.get('id');
+        if (!productId) {
+            window.location.href = './index.html';
+        }
 
-    if (!productId) {
-    window.location.href = './index.html';
-    }
+        // Load product
+        async function loadProduct() {
+            try {
+                let url = `${API_URL}/products/${productId}`;
+                let res;
+                try {
+                    res = await fetch(url);
+                    if (!res.ok) throw new Error('Local API failed');
+                } catch (e) {
+                    console.warn('Local load failed, trying LIVE API');
+                    url = `${LIVE_API}/products/${productId}`;
+                    res = await fetch(url);
+                }
 
-    // Load product
-    async function loadProduct() {
-    try {
-    // Load single product for efficiency
-    const res = await fetch(`${API_URL}/products/${productId}`);
-    const data = await res.json();
+                const data = await res.json();
 
-    if (data.success) {
-    currentProduct = data.data.product;
-    renderProduct();
-    renderReviews(currentProduct.reviews || []);
-    loadSuggested();
-    } else {
-    alert('Product not found');
-    window.location.href = '/';
-    }
-    } catch (error) {
-    console.error('Error:', error);
-    }
-    }
+                if (data.success) {
+                    currentProduct = data.data.product;
+                    renderProduct();
+                    renderReviews(currentProduct.reviews || []);
+                    loadSuggested();
+                } else {
+                    alert('Product not found');
+                    window.location.href = './index.html';
+                }
+            } catch (error) {
+                console.error('Final Load Error:', error);
+                document.querySelector('.product-detail-container').innerHTML = `
+    <div style="text-align:center; padding:100px;">
+        <h2>Oops! Product could not be loaded.</h2>
+        <button class="btn btn-primary" onclick="location.reload()">Retry</button>
+    </div>
+    `;
+            }
+        }
 
-    async function loadSuggested() {
-    try {
-    const res = await fetch(`${API_URL}/products?category=${currentProduct.category}&limit=4`);
-    const data = await res.json();
-    if (data.success) {
-    const suggested = data.data.products.filter(p => p._id !== productId);
-    document.getElementById('suggestedGrid').innerHTML = suggested.map(p => `
+        async function loadSuggested() {
+            try {
+                const res = await fetch(`${API_URL}/products?category=${currentProduct.category}&limit=4`);
+                const data = await res.json();
+                if (data.success) {
+                    const suggested = data.data.products.filter(p => p._id !== productId);
+                    document.getElementById('suggestedGrid').innerHTML = suggested.map(p => `
     <div class="product-card" onclick="window.location.href='/product.html?id=${p._id}'"
         style="cursor: pointer; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
         <div class="product-image" style="height: 200px; overflow: hidden;">
@@ -333,49 +348,49 @@
         </div>
     </div>
     `).join('');
-    }
-    } catch (e) { }
-    }
+                }
+            } catch (e) { }
+        }
 
-    function renderProduct() {
-    document.title = `${currentProduct.name} - AS³Cosmetic`;
-    document.getElementById('productName').textContent = currentProduct.name;
-    document.getElementById('productBrand').textContent = currentProduct.brand;
-    document.getElementById('productPrice').textContent = `₹${currentProduct.price.toLocaleString()}`;
-    document.getElementById('productDescription').textContent = currentProduct.description;
+        function renderProduct() {
+            document.title = `${currentProduct.name} - AS³Cosmetic`;
+            document.getElementById('productName').textContent = currentProduct.name;
+            document.getElementById('productBrand').textContent = currentProduct.brand;
+            document.getElementById('productPrice').textContent = `₹${currentProduct.price.toLocaleString()}`;
+            document.getElementById('productDescription').textContent = currentProduct.description;
 
-    const mainImg = currentProduct.images[0]?.url || 'https://via.placeholder.com/600';
-    document.getElementById('mainImage').src = mainImg;
+            const mainImg = currentProduct.images[0]?.url || 'https://via.placeholder.com/600';
+            document.getElementById('mainImage').src = mainImg;
 
-    // Rating display
-    const avg = currentProduct.rating?.average || '0.0';
-    const count = currentProduct.rating?.count || 0;
-    document.querySelector('.product-rating').innerHTML = `
+            // Rating display
+            const avg = currentProduct.rating?.average || '0.0';
+            const count = currentProduct.rating?.count || 0;
+            document.querySelector('.product-rating').innerHTML = `
     <span class="stars" style="color: #ffc107;">${'★'.repeat(Math.round(avg))}${'☆'.repeat(5 - Math.round(avg))}</span>
     <span style="color: #666; font-weight: 600;">${avg} (${count} reviews)</span>
     `;
 
-    // Thumbnails
-    if (currentProduct.images && currentProduct.images.length > 0) {
-    document.getElementById('thumbnails').innerHTML = currentProduct.images.map((img, idx) => `
+            // Thumbnails
+            if (currentProduct.images && currentProduct.images.length > 0) {
+                document.getElementById('thumbnails').innerHTML = currentProduct.images.map((img, idx) => `
     <img src="${img.url}" class="thumbnail ${idx === 0 ? 'active' : ''}" onclick="changeMainImage(this.src, this)">
     `).join('');
-    }
+            }
 
-    if (favorites.includes(productId)) {
-    document.getElementById('favoriteBtn').classList.add('active');
-    document.getElementById('favoriteBtn').textContent = '♥';
-    }
-    }
+            if (favorites.includes(productId)) {
+                document.getElementById('favoriteBtn').classList.add('active');
+                document.getElementById('favoriteBtn').textContent = '♥';
+            }
+        }
 
-    function renderReviews(reviews) {
-    const container = document.getElementById('reviewsContainer');
-    if (!reviews || reviews.length === 0) {
-    container.innerHTML = '<p style="color: #888;">No reviews yet. Be the first to review!</p>';
-    return;
-    }
+        function renderReviews(reviews) {
+            const container = document.getElementById('reviewsContainer');
+            if (!reviews || reviews.length === 0) {
+                container.innerHTML = '<p style="color: #888;">No reviews yet. Be the first to review!</p>';
+                return;
+            }
 
-    container.innerHTML = reviews.map(rev => `
+            container.innerHTML = reviews.map(rev => `
     <div style="background: #fdfdfd; padding: 20px; border-radius: 12px; border: 1px solid #f0f0f0;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <span style="font-weight: 700; color: #1a1a2e;">${rev.name}</span>
@@ -383,62 +398,62 @@
         </div>
         <p style="color: #555; line-height: 1.6; margin: 0;">${rev.comment}</p>
         <small style="color: #aaa; display: block; margin-top: 10px;">${new
-            Date(rev.createdAt).toLocaleDateString()}</small>
+                    Date(rev.createdAt).toLocaleDateString()}</small>
     </div>
     `).sort(() => 0.5 - Math.random()).join(''); // Randomize order for dummy feel
-    }
+        }
 
-    window.changeMainImage = (src, thumb) => {
-    document.getElementById('mainImage').src = src;
-    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-    thumb.classList.add('active');
-    };
+        window.changeMainImage = (src, thumb) => {
+            document.getElementById('mainImage').src = src;
+            document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+            thumb.classList.add('active');
+        };
 
-    // Add to cart
-    document.getElementById('addToCartBtn').addEventListener('click', () => {
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const existing = cart.find(i => i.productId === productId);
+        // Add to cart
+        document.getElementById('addToCartBtn').addEventListener('click', () => {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const existing = cart.find(i => i.productId === productId);
 
-    if (existing) {
-    existing.quantity++;
-    } else {
-    cart.push({
-    productId: currentProduct._id,
-    name: currentProduct.name,
-    price: currentProduct.price,
-    image: currentProduct.images[0]?.url,
-    quantity: 1
-    });
-    }
+            if (existing) {
+                existing.quantity++;
+            } else {
+                cart.push({
+                    productId: currentProduct._id,
+                    name: currentProduct.name,
+                    price: currentProduct.price,
+                    image: currentProduct.images[0]?.url,
+                    quantity: 1
+                });
+            }
 
-    localStorage.setItem('cart', JSON.stringify(cart));
-    alert('✅ Added to cart!');
-    updateCartBadge();
-    });
+            localStorage.setItem('cart', JSON.stringify(cart));
+            alert('✅ Added to cart!');
+            updateCartBadge();
+        });
 
-    // Favorite toggle
-    document.getElementById('favoriteBtn').addEventListener('click', function () {
-    if (favorites.includes(productId)) {
-    favorites = favorites.filter(id => id !== productId);
-    this.classList.remove('active');
-    this.textContent = '♡';
-    } else {
-    favorites.push(productId);
-    this.classList.add('active');
-    this.textContent = '♥';
-    }
-    localStorage.setItem('favorites', JSON.stringify(favorites));
-    });
+        // Favorite toggle
+        document.getElementById('favoriteBtn').addEventListener('click', function () {
+            if (favorites.includes(productId)) {
+                favorites = favorites.filter(id => id !== productId);
+                this.classList.remove('active');
+                this.textContent = '♡';
+            } else {
+                favorites.push(productId);
+                this.classList.add('active');
+                this.textContent = '♥';
+            }
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+        });
 
-    function updateCartBadge() {
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const total = cart.reduce((sum, i) => sum + i.quantity, 0);
-    const badge = document.getElementById('cartBadge');
-    if (badge) badge.textContent = total;
-    }
+        function updateCartBadge() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const total = cart.reduce((sum, i) => sum + i.quantity, 0);
+            const badge = document.getElementById('cartBadge');
+            if (badge) badge.textContent = total;
+        }
 
-    loadProduct();
-    updateCartBadge();
+        loadProduct();
+        updateCartBadge();
     </script>
 </body>
 

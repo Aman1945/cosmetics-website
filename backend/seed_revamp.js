@@ -141,7 +141,7 @@ async function seedRevamp() {
             const total = subtotal + 99;
 
             const order = new Order({
-                userId: user._id.toString(),
+                user: user._id,
                 items,
                 shippingAddress: { name: user.name, email: user.email, phone: '9123456789', address: 'Plot 4, Civil Lines', city: 'Delhi', state: 'Delhi', pincode: '110001' },
                 paymentMethod: 'UPI',

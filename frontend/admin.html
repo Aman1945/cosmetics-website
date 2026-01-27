@@ -262,6 +262,51 @@
 
     <!-- Admin Container -->
     <div class="admin-container" id="adminContainer" style="display: none;">
+        <!-- Offer Modal -->
+        <div class="modal" id="offerModal">
+            <div class="modal-content">
+                <h2 id="offerModalTitle">Add New Offer</h2>
+                <form id="offerForm" style="margin-top: 2rem;">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Offer Title</label>
+                            <input type="text" id="offerTitle" class="form-input" placeholder="e.g. Flat 50% OFF"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label>Subtitle</label>
+                            <input type="text" id="offerSubtitle" class="form-input" placeholder="e.g. On All Lipsticks"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label>Badge</label>
+                            <input type="text" id="offerBadge" class="form-input" placeholder="MEGA SALE, NEW, HOT"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label>Image URL</label>
+                            <input type="url" id="offerImage" class="form-input" placeholder="Image URL" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Linked Product ID (Optional)</label>
+                            <input type="text" id="offerProductId" class="form-input" placeholder="MongoDB ID">
+                        </div>
+                        <div class="form-group">
+                            <label>Design Type</label>
+                            <select id="offerIsLarge" class="form-input">
+                                <option value="true">Large Banner</option>
+                                <option value="false">Small Grid</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">Save Offer</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('offerModal')"
+                            style="flex: 1;">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="nav-brand">
@@ -361,6 +406,30 @@
                 </div>
             </div>
 
+            <!-- Offers View -->
+            <div id="offersView" class="view-section" style="display: none;">
+                <div class="view-header">
+                    <h2 class="section-title">Manage Trending Offers</h2>
+                    <button class="btn btn-primary" onclick="openOfferModal()">+ Add New Offer</button>
+                </div>
+                <div
+                    style="background: white; padding: 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); margin-top: 2rem;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Offer Title</th>
+                                <th>Badge</th>
+                                <th>Linked Product</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="offersTableBody">
+                            <!-- Offers loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
             <!-- Orders View -->
             <div id="ordersView" class="view-section" style="display: none;">
                 <h2 class="section-title" style="margin-bottom: 2rem;">Order Management</h2>

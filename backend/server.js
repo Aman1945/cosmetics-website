@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
 const orderRoutes = require('./routes/orders');
+const offerRoutes = require('./routes/offers');
 
 // Load Models
 const Product = require('./models/Product');
@@ -66,6 +67,7 @@ mongoose.connect(MONGODB_URI)
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/offers', offerRoutes);
 
 // Additional Admin Routes (if not in modular routes)
 app.get('/api/admin/analytics', async (req, res) => {

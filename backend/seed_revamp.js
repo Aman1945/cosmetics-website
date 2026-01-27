@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 const Product = require('./models/Product');
 const User = require('./models/User');
 const Order = require('./models/Order');
+const Offer = require('./models/Offer');
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ async function seedRevamp() {
         await Product.deleteMany({});
         await User.deleteMany({});
         await Order.deleteMany({});
+        await Offer.deleteMany({});
         console.log('🗑️  Cleared existing data');
 
         // Create Admin
@@ -134,6 +136,38 @@ async function seedRevamp() {
             }
         }
         console.log('✅ Created purchase history for 4 users');
+
+        // Seed 3 Offers
+        const offer1 = new Offer({
+            title: 'Flat 50% OFF',
+            subtitle: 'On All Lipsticks & Lip Care',
+            badge: 'MEGA SALE',
+            discount: 50,
+            image: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=600',
+            targetProductId: products.find(p => p.category === 'lipstick')._id,
+            isLarge: true
+        });
+        await offer1.save();
+
+        const offer2 = new Offer({
+            title: 'Buy 2 Get 1 Free',
+            subtitle: 'On Skincare Range',
+            badge: 'NEW',
+            image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600',
+            targetProductId: products.find(p => p.category === 'skincare')._id,
+            isLarge: false
+        });
+        await offer2.save();
+
+        const offer3 = new Offer({
+            title: 'Free Shipping',
+            subtitle: 'On Orders Above ₹999',
+            badge: 'HOT',
+            image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600',
+            isLarge: false
+        });
+        await offer3.save();
+        console.log('✅ Seeded 3 trending offers');
 
         console.log('\n🎉 Revamp Seeding Complete!');
         console.log('\nSummary:');

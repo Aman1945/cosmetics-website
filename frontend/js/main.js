@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initViewAll();
     initLoginModal();
     init3DHero();
+    loadOffers(); // New: Load Trending Offers
     loadProducts();
     initCart();
     initFilters(); // Added filter initialization
@@ -117,6 +118,50 @@ function initSearch() {
     });
 }
 
+async function loadOffers() {
+    try {
+        const response = await fetch(`${API_URL}/offers`);
+        const data = await response.json();
+        if (data.success) {
+            renderOffers(data.data.offers);
+        }
+    } catch (error) { console.error('Error loading offers:', error); }
+}
+
+function renderOffers(offers) {
+    const grid = document.getElementById('offersGrid');
+    if (!grid) return;
+
+    if (offers.length === 0) {
+        grid.innerHTML = '<p style="text-align: center; grid-column: 1/-1;">No current offers.</p>';
+        return;
+    }
+
+    grid.innerHTML = offers.map(offer => `
+        <div class="offer-card ${offer.isLarge ? 'offer-large' : ''}">
+            <div class="offer-content">
+                <span class="offer-badge">${offer.badge}</span>
+                <h3 style="${offer.isLarge ? '' : 'font-size: 1.5rem;'}">${offer.title}</h3>
+                <p>${offer.subtitle}</p>
+                ${offer.targetProductId ? `
+                    <div class="stock-info" style="margin-bottom: 15px; color: var(--secondary); font-weight: 600;">
+                        Only ${offer.targetProductId.stock} pieces left!
+                    </div>
+                ` : ''}
+                <button class="btn ${offer.isLarge ? 'btn-primary' : 'btn-secondary'}" 
+                    onclick="${offer.targetProductId ? `window.location.href='/product.html?id=${offer.targetProductId._id}'` : ''}">
+                    ${offer.isLarge ? 'Shop Now' : 'Explore'}
+                </button>
+            </div>
+            ${offer.isLarge ? `
+                <div class="offer-visual">
+                    <div class="offer-circle" style="background: url('${offer.image}') no-repeat center/cover;"></div>
+                </div>
+            ` : ''}
+        </div>
+    `).join('');
+}
+
 async function loadProducts(category = 'all', limit = 20) {
     try {
         state.currentCategory = category;
@@ -180,6 +225,9 @@ function renderProducts(products) {
             <div class="product-info">
                 <div class="product-category">${product.category}</div>
                 <h3 class="product-name" onclick="window.location.href='/product.html?id=${product._id}'" style="cursor: pointer;">${product.name}</h3>
+                <div style="font-size: 0.8rem; color: ${product.stock < 20 ? '#d32f2f' : '#666'}; margin-bottom: 10px;">
+                    ${product.stock < 20 ? '⚠️ Low Stock: ' : 'Stock: '} <b>${product.stock}</b> units
+                </div>
                 <div class="product-footer">
                     <div class="product-price">₹${product.price.toLocaleString()}</div>
                     <div style="display: flex; gap: 8px;">

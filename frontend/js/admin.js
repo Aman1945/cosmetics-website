@@ -102,6 +102,7 @@ function initNavigation() {
             if (item.dataset.view === 'products') loadProducts();
             if (item.dataset.view === 'orders') loadOrders();
             if (item.dataset.view === 'users') loadUsers();
+            if (item.dataset.view === 'offers') loadOffers();
             if (item.dataset.view === 'dashboard') loadDashboardData();
         });
     });
@@ -176,17 +177,98 @@ async function loadOrders() {
 
 async function loadUsers() {
     try {
-        const response = await fetch(`${API_URL}/admin/users`);
+        const response = await fetch(`${API_URL}/admin/users`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
         const data = await response.json();
-
         if (data.success) {
             state.users = data.data.users;
             renderUsersTable(state.users);
         }
-    } catch (error) {
-        console.error('Error loading users:', error);
-    }
+    } catch (error) { console.error('Error loading users:', error); }
 }
+
+async function loadOffers() {
+    try {
+        const response = await fetch(`${API_URL}/offers`);
+        const data = await response.json();
+        if (data.success) {
+            state.offers = data.data.offers;
+            renderOffersTable(state.offers);
+        }
+    } catch (error) { console.error('Error loading offers:', error); }
+}
+
+function renderOffersTable(offers) {
+    const tbody = document.getElementById('offersTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = offers.map(offer => `
+        <tr>
+            <td style="font-weight: 600;">${offer.title}</td>
+            <td><span class="status-badge" style="background: var(--off-white); color: var(--primary);">${offer.badge}</span></td>
+            <td>${offer.targetProductId ? offer.targetProductId.name : 'Not Linked'}</td>
+            <td><span class="status-badge ${offer.isActive ? 'status-delivered' : 'status-cancelled'}">${offer.isActive ? 'Active' : 'Inactive'}</span></td>
+            <td>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="deleteOffer('${offer._id}')">Delete</button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+window.openOfferModal = () => {
+    document.getElementById('offerForm').reset();
+    document.getElementById('offerModalTitle').textContent = 'Add New Offer';
+    document.getElementById('offerModal').classList.add('active');
+    document.getElementById('modalOverlay').classList.add('active');
+};
+
+document.getElementById('offerForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const offerData = {
+        title: document.getElementById('offerTitle').value,
+        subtitle: document.getElementById('offerSubtitle').value,
+        badge: document.getElementById('offerBadge').value,
+        image: document.getElementById('offerImage').value,
+        targetProductId: document.getElementById('offerProductId').value || null,
+        isLarge: document.getElementById('offerIsLarge').value === 'true'
+    };
+
+    try {
+        const res = await fetch(`${API_URL}/offers`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify(offerData)
+        });
+        const data = await res.json();
+        if (data.success) {
+            closeModal('offerModal');
+            loadOffers();
+            alert('Offer saved successfully!');
+        } else {
+            alert(data.message);
+        }
+    } catch (err) { console.error('Error saving offer:', err); }
+});
+
+window.deleteOffer = async (id) => {
+    if (!confirm('Are you sure you want to delete this offer?')) return;
+    try {
+        const res = await fetch(`${API_URL}/offers/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+            loadOffers();
+            alert('Offer deleted');
+        }
+    } catch (err) { console.error('Error deleting offer:', err); }
+};
 
 function renderUsersTable(users) {
     const tbody = document.getElementById('usersTableBody');

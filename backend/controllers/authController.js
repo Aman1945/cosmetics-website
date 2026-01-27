@@ -208,14 +208,14 @@ exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Auto-create admin for first-time use if it matches demo credentials
-        if (email === 'admin@luxeglow.com' && password === 'admin123') {
+        // Auto-create admin for first-time use
+        if (email === 'admin@as3cosmetic.com' && password === 'admin123') {
             let admin = await User.findOne({ email });
             if (!admin) {
                 console.log('Creating initial admin user...');
                 admin = new User({
                     name: 'Admin User',
-                    email: 'admin@luxeglow.com',
+                    email: 'admin@as3cosmetic.com',
                     password: 'admin123',
                     role: 'admin',
                     isVerified: true // Auto-verify admin

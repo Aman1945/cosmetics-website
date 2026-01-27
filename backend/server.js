@@ -53,6 +53,7 @@ const allowedOrigins = [
     'http://127.0.0.1:3000',
     'http://localhost:5500', // VS Code Live Server
     'http://127.0.0.1:5500',
+    'https://cosmetics-website-1.onrender.com', // Production
     'https://luxeglow-cosmetic.netlify.app',
     'https://aman-cosmetic.vercel.app'
 ];
@@ -62,18 +63,7 @@ const path = require('path');
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin ||
-            origin === 'null' ||
-            origin.startsWith('http://localhost') ||
-            origin.startsWith('http://127.0.0.1') ||
-            origin.startsWith('http://192.168.') ||
-            allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error('CORS blocked: Security restriction. Origin: ' + origin));
-        }
-    },
+    origin: true,
     credentials: true
 }));
 

@@ -1,13 +1,8 @@
-// API Configuration with LIVE FALLBACK
 const LIVE_API = 'https://cosmetics-website-1.onrender.com/api';
-let API_URL = LIVE_API; // Default to Live to be safe
-
-// Check if we are running locally
-const isLocal = ['localhost', '127.0.0.1', '::1', ''].includes(window.location.hostname) || window.location.hostname.startsWith('192.168.');
-
-if (isLocal) {
-    API_URL = `http://${window.location.hostname || 'localhost'}:5000/api`;
-}
+// Universal API URL logic
+const API_URL = (['localhost', '127.0.0.1', '::1'].includes(window.location.hostname) || window.location.hostname.startsWith('192.168.'))
+    ? `http://${window.location.hostname || 'localhost'}:5000/api`
+    : (window.location.protocol === 'file:' ? LIVE_API : '/api');
 
 // Global state
 const state = {

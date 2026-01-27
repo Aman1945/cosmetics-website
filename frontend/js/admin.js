@@ -3,7 +3,7 @@
 const LIVE_API = 'https://cosmetics-website-1.onrender.com/api';
 const API_URL = (['localhost', '127.0.0.1', '::1'].includes(window.location.hostname) || window.location.hostname.startsWith('192.168.'))
     ? `http://${window.location.hostname || 'localhost'}:5000/api`
-    : (window.location.protocol === 'file:' ? LIVE_API : '/api');
+    : LIVE_API; // Always use full Live URL in production
 
 console.log('Admin API connected to:', API_URL);
 

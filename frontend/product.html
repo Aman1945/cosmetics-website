@@ -336,7 +336,7 @@
                 if (data.success) {
                     const suggested = data.data.products.filter(p => p._id !== productId);
                     document.getElementById('suggestedGrid').innerHTML = suggested.map(p => `
-    <div class="product-card" onclick="window.location.href='/product.html?id=${p._id}'"
+    <div class="product-card" onclick="window.location.href='./product.html?id=${p._id}'"
         style="cursor: pointer; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
         <div class="product-image" style="height: 200px; overflow: hidden;">
             <img src="${p.images[0]?.url}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover;">

@@ -28,7 +28,19 @@ const app = express();
 
 // Security Headers
 app.use(helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" }
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'", "https://cosmetics-website-1.onrender.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdnjs.cloudflare.com"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com"],
+            imgSrc: ["'self'", "data:", "https://images.unsplash.com", "https://via.placeholder.com", "https://*.unsplash.com"],
+            connectSrc: ["'self'", "http://localhost:5000", "http://127.0.0.1:5000", "https://cosmetics-website-1.onrender.com", "ws://localhost:*"],
+            frameSrc: ["'self'"],
+            objectSrc: ["'none'"],
+        },
+    }
 }));
 
 // Restricted CORS

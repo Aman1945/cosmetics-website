@@ -117,11 +117,11 @@ function initSearch() {
     });
 }
 
-async function loadProducts(category = 'all') {
+async function loadProducts(category = 'all', limit = 20) {
     try {
         state.currentCategory = category;
-        let url = `${API_URL}/products`;
-        if (category !== 'all') url += `?category=${category}`;
+        let url = `${API_URL}/products?limit=${limit}`;
+        if (category !== 'all') url += `&category=${category}`;
 
         const response = await fetch(url);
         const data = await response.json();
@@ -129,6 +129,18 @@ async function loadProducts(category = 'all') {
         if (data.success) {
             state.products = data.data.products;
             renderProducts(state.products);
+
+            // Add Info Bar
+            const grid = document.getElementById('productsGrid');
+            const total = data.data.pagination?.total || state.products.length;
+            const existingInfo = document.getElementById('productResultsInfo');
+            if (existingInfo) existingInfo.remove();
+
+            const info = document.createElement('div');
+            info.id = 'productResultsInfo';
+            info.style.cssText = 'grid-column: 1/-1; text-align: left; margin-bottom: 20px; font-weight: 500; border-bottom: 1px solid #eee; padding-bottom: 10px; color: #1a1a1a;';
+            info.innerHTML = `Showing <b>${state.products.length}</b> of <b>${total}</b> products in <b>${category.toUpperCase()}</b>`;
+            grid.parentElement.insertBefore(info, grid);
         }
     } catch (error) {
         console.error('API Error:', error);
@@ -160,7 +172,7 @@ function renderProducts(products) {
     }
 
     grid.innerHTML = products.map(product => `
-        <div class="product-card" data-product-id="${product._id}">
+        <div class="product-card" data-product-id="${product._id}" style="opacity: 1;">
             <div class="product-image" onclick="window.location.href='/product.html?id=${product._id}'" style="cursor: pointer;">
                 <img src="${product.images?.[0]?.url}" alt="${product.name}">
                 ${product.isFeatured ? '<span class="product-badge">BESTSELLER</span>' : ''}
@@ -185,7 +197,7 @@ function renderProducts(products) {
             </div>
         </div>
     `).join('');
-    gsap.from('.product-card', { opacity: 0, y: 30, stagger: 0.05, duration: 0.4 });
+    // Removed GSAP animation to fix stuck opacity issues
 }
 
 function isFavorite(id) {
@@ -317,6 +329,11 @@ function showNotification(msg) {
     setTimeout(() => { div.style.opacity = '0'; setTimeout(() => div.remove(), 500); }, 2500);
 }
 
-function initViewAll() { document.getElementById('viewAllBtn')?.addEventListener('click', () => { document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' }); }); }
+function initViewAll() {
+    document.getElementById('viewAllBtn')?.addEventListener('click', () => {
+        loadProducts('all', 500); // Load all products
+        document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' });
+    });
+}
 function initForms() { }
 function initScrollAnimations() { }

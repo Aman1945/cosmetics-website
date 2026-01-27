@@ -54,7 +54,8 @@ exports.getAllProducts = async (req, res) => {
         const products = await Product.find(query)
             .sort(sortOption)
             .limit(Number(limit))
-            .skip(skip);
+            .skip(skip)
+            .lean();
 
         const total = await Product.countDocuments(query);
 
@@ -109,7 +110,7 @@ exports.getFeaturedProducts = async (req, res) => {
 // Get product by ID
 exports.getProductById = async (req, res) => {
     try {
-        const product = await Product.findById(req.params.id);
+        const product = await Product.findById(req.params.id).lean();
 
         if (!product) {
             return res.status(404).json({

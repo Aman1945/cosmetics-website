@@ -27,7 +27,7 @@ function checkAuth() {
     const user = JSON.parse(localStorage.getItem('user'));
 
     if (!token || !user) {
-        window.location.href = '/auth.html?redirect=checkout';
+        window.location.href = './auth.html?redirect=checkout';
         return;
     }
 

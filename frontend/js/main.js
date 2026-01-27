@@ -1,4 +1,15 @@
-// State Management
+// API Configuration with LIVE FALLBACK
+const LIVE_API = 'https://cosmetics-website-1.onrender.com/api';
+let API_URL = LIVE_API; // Default to Live to be safe
+
+// Check if we are running locally
+const isLocal = ['localhost', '127.0.0.1', '::1', ''].includes(window.location.hostname) || window.location.hostname.startsWith('192.168.');
+
+if (isLocal) {
+    API_URL = `http://${window.location.hostname || 'localhost'}:5000/api`;
+}
+
+// Global state
 const state = {
     cart: JSON.parse(localStorage.getItem('cart')) || [],
     user: JSON.parse(localStorage.getItem('user')) || null,
@@ -6,18 +17,6 @@ const state = {
     currentCategory: 'all',
     searchQuery: ''
 };
-
-// API Configuration with LIVE FALLBACK
-const LIVE_API = 'https://cosmetics-website-1.onrender.com/api';
-let API_URL = (['localhost', '127.0.0.1', '::1', ''].includes(window.location.hostname) || window.location.hostname.startsWith('192.168.'))
-    ? `http://${window.location.hostname || 'localhost'}:5000/api`
-    : LIVE_API;
-
-// Test Local Connection, fallback if needed
-fetch(`${API_URL}/products/categories`).catch(() => {
-    console.warn('Local API not responding. Falling back to Production API.');
-    API_URL = LIVE_API;
-});
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
@@ -325,10 +324,9 @@ function updateCartBadge() {
 function initLoginModal() {
     document.getElementById('loginBtn')?.addEventListener('click', () => {
         if (state.user) {
-            // Redirect to profile page for logged-in users
-            window.location.href = '/profile.html';
+            window.location.href = './profile.html';
         } else {
-            window.location.href = '/auth.html';
+            window.location.href = './auth.html';
         }
     });
 }

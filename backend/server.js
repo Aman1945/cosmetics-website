@@ -35,11 +35,17 @@ app.use(helmet({
 const allowedOrigins = [
     'http://localhost:5000',
     'http://127.0.0.1:5000',
+    'http://localhost:3000', // Vite Dev Server
+    'http://127.0.0.1:3000',
     'http://localhost:5500', // VS Code Live Server
     'http://127.0.0.1:5500',
     'https://luxeglow-cosmetic.netlify.app',
     'https://aman-cosmetic.vercel.app'
 ];
+
+const path = require('path');
+// Serve static files from the frontend directory
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 app.use(cors({
     origin: function (origin, callback) {
@@ -165,7 +171,7 @@ app.put('/api/admin/users/:id', auth, adminAuth, async (req, res) => {
     }
 });
 
-app.get('/', (req, res) => res.json({ message: 'AS³Cosmetic API Running' }));
+// app.get('/', (req, res) => res.json({ message: 'AS³Cosmetic API Running' }));
 
 // Health check and Self-ping route
 app.get('/ping', (req, res) => res.send('Pong! Server is awake. 🚀'));

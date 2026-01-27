@@ -59,6 +59,8 @@ const allowedOrigins = [
     'https://aman-cosmetic.vercel.app'
 ];
 
+const path = require('path'); // ✅ Added back!
+
 // Serve static files
 app.use(express.static(path.join(__dirname, '../frontend')));
 

@@ -342,9 +342,18 @@
                 <span>Total:</span>
                 <span id="cartTotal">₹0.00</span>
             </div>
-            <button class="btn btn-primary btn-block">Checkout</button>
+            <button class="btn btn-primary btn-block" onclick="window.location.href='/checkout.html'">Proceed to
+                Checkout</button>
         </div>
     </div>
+
+    <!-- Error Monitor -->
+    <script>
+        window.onerror = function (msg, url, line) {
+            console.error('Frontend Error:', msg, 'at', url, ':', line);
+            // alert('Error: ' + msg); // Uncomment this if you want to see errors on screen
+        };
+    </script>
 
     <!-- Login Modal -->
     <div class="modal" id="loginModal">

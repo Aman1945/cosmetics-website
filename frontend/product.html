@@ -271,165 +271,174 @@
         </div>
     </div>
 
-    <script>
-        const API_URL = (['localhost', '127.0.0.1', '::1', ''].includes(window.location.hostname) || window.location.hostname.startsWith('192.168.'))
-            ? `http://${window.location.hostname || 'localhost'}:5000/api`
-            : 'https://cosmetics-website-1.onrender.com/api';
+    const LIVE_API = 'https://cosmetics-website-1.onrender.com/api';
+    let API_URL = (['localhost', '127.0.0.1', '::1', ''].includes(window.location.hostname) ||
+    window.location.hostname.startsWith('192.168.'))
+    ? `http://${window.location.hostname || 'localhost'}:5000/api`
+    : LIVE_API;
 
-        let currentProduct = null;
-        let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+    // Test Local Connection
+    fetch(`${API_URL}/products/categories`).catch(() => {
+    API_URL = LIVE_API;
+    });
 
-        // Get product ID from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const productId = urlParams.get('id');
+    let currentProduct = null;
+    let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
-        if (!productId) {
-            window.location.href = '/';
-        }
+    // Get product ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('id');
 
-        // Load product
-        async function loadProduct() {
-            try {
-                // Load single product for efficiency
-                const res = await fetch(`${API_URL}/products/${productId}`);
-                const data = await res.json();
+    if (!productId) {
+    window.location.href = '/';
+    }
 
-                if (data.success) {
-                    currentProduct = data.data.product;
-                    renderProduct();
-                    renderReviews(currentProduct.reviews || []);
-                    loadSuggested();
-                } else {
-                    alert('Product not found');
-                    window.location.href = '/';
-                }
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
+    // Load product
+    async function loadProduct() {
+    try {
+    // Load single product for efficiency
+    const res = await fetch(`${API_URL}/products/${productId}`);
+    const data = await res.json();
 
-        async function loadSuggested() {
-            try {
-                const res = await fetch(`${API_URL}/products?category=${currentProduct.category}&limit=4`);
-                const data = await res.json();
-                if (data.success) {
-                    const suggested = data.data.products.filter(p => p._id !== productId);
-                    document.getElementById('suggestedGrid').innerHTML = suggested.map(p => `
-                        <div class="product-card" onclick="window.location.href='/product.html?id=${p._id}'" style="cursor: pointer; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-                            <div class="product-image" style="height: 200px; overflow: hidden;">
-                                <img src="${p.images[0]?.url}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover;">
-                            </div>
-                            <div class="product-info" style="padding: 15px;">
-                                <h3 class="product-name" style="font-size: 1rem; margin-bottom: 5px;">${p.name}</h3>
-                                <div class="product-price" style="font-size: 1.1rem; color: #fc2779; font-weight: 700;">₹${p.price.toLocaleString()}</div>
-                            </div>
-                        </div>
-                    `).join('');
-                }
-            } catch (e) { }
-        }
+    if (data.success) {
+    currentProduct = data.data.product;
+    renderProduct();
+    renderReviews(currentProduct.reviews || []);
+    loadSuggested();
+    } else {
+    alert('Product not found');
+    window.location.href = '/';
+    }
+    } catch (error) {
+    console.error('Error:', error);
+    }
+    }
 
-        function renderProduct() {
-            document.title = `${currentProduct.name} - AS³Cosmetic`;
-            document.getElementById('productName').textContent = currentProduct.name;
-            document.getElementById('productBrand').textContent = currentProduct.brand;
-            document.getElementById('productPrice').textContent = `₹${currentProduct.price.toLocaleString()}`;
-            document.getElementById('productDescription').textContent = currentProduct.description;
+    async function loadSuggested() {
+    try {
+    const res = await fetch(`${API_URL}/products?category=${currentProduct.category}&limit=4`);
+    const data = await res.json();
+    if (data.success) {
+    const suggested = data.data.products.filter(p => p._id !== productId);
+    document.getElementById('suggestedGrid').innerHTML = suggested.map(p => `
+    <div class="product-card" onclick="window.location.href='/product.html?id=${p._id}'"
+        style="cursor: pointer; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+        <div class="product-image" style="height: 200px; overflow: hidden;">
+            <img src="${p.images[0]?.url}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+        <div class="product-info" style="padding: 15px;">
+            <h3 class="product-name" style="font-size: 1rem; margin-bottom: 5px;">${p.name}</h3>
+            <div class="product-price" style="font-size: 1.1rem; color: #fc2779; font-weight: 700;">
+                ₹${p.price.toLocaleString()}</div>
+        </div>
+    </div>
+    `).join('');
+    }
+    } catch (e) { }
+    }
 
-            const mainImg = currentProduct.images[0]?.url || 'https://via.placeholder.com/600';
-            document.getElementById('mainImage').src = mainImg;
+    function renderProduct() {
+    document.title = `${currentProduct.name} - AS³Cosmetic`;
+    document.getElementById('productName').textContent = currentProduct.name;
+    document.getElementById('productBrand').textContent = currentProduct.brand;
+    document.getElementById('productPrice').textContent = `₹${currentProduct.price.toLocaleString()}`;
+    document.getElementById('productDescription').textContent = currentProduct.description;
 
-            // Rating display
-            const avg = currentProduct.rating?.average || '0.0';
-            const count = currentProduct.rating?.count || 0;
-            document.querySelector('.product-rating').innerHTML = `
-                <span class="stars" style="color: #ffc107;">${'★'.repeat(Math.round(avg))}${'☆'.repeat(5 - Math.round(avg))}</span>
-                <span style="color: #666; font-weight: 600;">${avg} (${count} reviews)</span>
-            `;
+    const mainImg = currentProduct.images[0]?.url || 'https://via.placeholder.com/600';
+    document.getElementById('mainImage').src = mainImg;
 
-            // Thumbnails
-            if (currentProduct.images && currentProduct.images.length > 0) {
-                document.getElementById('thumbnails').innerHTML = currentProduct.images.map((img, idx) => `
-                    <img src="${img.url}" class="thumbnail ${idx === 0 ? 'active' : ''}" onclick="changeMainImage(this.src, this)">
-                `).join('');
-            }
+    // Rating display
+    const avg = currentProduct.rating?.average || '0.0';
+    const count = currentProduct.rating?.count || 0;
+    document.querySelector('.product-rating').innerHTML = `
+    <span class="stars" style="color: #ffc107;">${'★'.repeat(Math.round(avg))}${'☆'.repeat(5 - Math.round(avg))}</span>
+    <span style="color: #666; font-weight: 600;">${avg} (${count} reviews)</span>
+    `;
 
-            if (favorites.includes(productId)) {
-                document.getElementById('favoriteBtn').classList.add('active');
-                document.getElementById('favoriteBtn').textContent = '♥';
-            }
-        }
+    // Thumbnails
+    if (currentProduct.images && currentProduct.images.length > 0) {
+    document.getElementById('thumbnails').innerHTML = currentProduct.images.map((img, idx) => `
+    <img src="${img.url}" class="thumbnail ${idx === 0 ? 'active' : ''}" onclick="changeMainImage(this.src, this)">
+    `).join('');
+    }
 
-        function renderReviews(reviews) {
-            const container = document.getElementById('reviewsContainer');
-            if (!reviews || reviews.length === 0) {
-                container.innerHTML = '<p style="color: #888;">No reviews yet. Be the first to review!</p>';
-                return;
-            }
+    if (favorites.includes(productId)) {
+    document.getElementById('favoriteBtn').classList.add('active');
+    document.getElementById('favoriteBtn').textContent = '♥';
+    }
+    }
 
-            container.innerHTML = reviews.map(rev => `
-                <div style="background: #fdfdfd; padding: 20px; border-radius: 12px; border: 1px solid #f0f0f0;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <span style="font-weight: 700; color: #1a1a2e;">${rev.name}</span>
-                        <span style="color: #ffc107;">${'★'.repeat(rev.rating)}${'☆'.repeat(5 - rev.rating)}</span>
-                    </div>
-                    <p style="color: #555; line-height: 1.6; margin: 0;">${rev.comment}</p>
-                    <small style="color: #aaa; display: block; margin-top: 10px;">${new Date(rev.createdAt).toLocaleDateString()}</small>
-                </div>
-            `).sort(() => 0.5 - Math.random()).join(''); // Randomize order for dummy feel
-        }
+    function renderReviews(reviews) {
+    const container = document.getElementById('reviewsContainer');
+    if (!reviews || reviews.length === 0) {
+    container.innerHTML = '<p style="color: #888;">No reviews yet. Be the first to review!</p>';
+    return;
+    }
 
-        window.changeMainImage = (src, thumb) => {
-            document.getElementById('mainImage').src = src;
-            document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-            thumb.classList.add('active');
-        };
+    container.innerHTML = reviews.map(rev => `
+    <div style="background: #fdfdfd; padding: 20px; border-radius: 12px; border: 1px solid #f0f0f0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-weight: 700; color: #1a1a2e;">${rev.name}</span>
+            <span style="color: #ffc107;">${'★'.repeat(rev.rating)}${'☆'.repeat(5 - rev.rating)}</span>
+        </div>
+        <p style="color: #555; line-height: 1.6; margin: 0;">${rev.comment}</p>
+        <small style="color: #aaa; display: block; margin-top: 10px;">${new
+            Date(rev.createdAt).toLocaleDateString()}</small>
+    </div>
+    `).sort(() => 0.5 - Math.random()).join(''); // Randomize order for dummy feel
+    }
 
-        // Add to cart
-        document.getElementById('addToCartBtn').addEventListener('click', () => {
-            let cart = JSON.parse(localStorage.getItem('cart')) || [];
-            const existing = cart.find(i => i.productId === productId);
+    window.changeMainImage = (src, thumb) => {
+    document.getElementById('mainImage').src = src;
+    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+    thumb.classList.add('active');
+    };
 
-            if (existing) {
-                existing.quantity++;
-            } else {
-                cart.push({
-                    productId: currentProduct._id,
-                    name: currentProduct.name,
-                    price: currentProduct.price,
-                    image: currentProduct.images[0]?.url,
-                    quantity: 1
-                });
-            }
+    // Add to cart
+    document.getElementById('addToCartBtn').addEventListener('click', () => {
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const existing = cart.find(i => i.productId === productId);
 
-            localStorage.setItem('cart', JSON.stringify(cart));
-            alert('✅ Added to cart!');
-            updateCartBadge();
-        });
+    if (existing) {
+    existing.quantity++;
+    } else {
+    cart.push({
+    productId: currentProduct._id,
+    name: currentProduct.name,
+    price: currentProduct.price,
+    image: currentProduct.images[0]?.url,
+    quantity: 1
+    });
+    }
 
-        // Favorite toggle
-        document.getElementById('favoriteBtn').addEventListener('click', function () {
-            if (favorites.includes(productId)) {
-                favorites = favorites.filter(id => id !== productId);
-                this.classList.remove('active');
-                this.textContent = '♡';
-            } else {
-                favorites.push(productId);
-                this.classList.add('active');
-                this.textContent = '♥';
-            }
-            localStorage.setItem('favorites', JSON.stringify(favorites));
-        });
+    localStorage.setItem('cart', JSON.stringify(cart));
+    alert('✅ Added to cart!');
+    updateCartBadge();
+    });
 
-        function updateCartBadge() {
-            const cart = JSON.parse(localStorage.getItem('cart')) || [];
-            const total = cart.reduce((sum, i) => sum + i.quantity, 0);
-            const badge = document.getElementById('cartBadge');
-            if (badge) badge.textContent = total;
-        }
+    // Favorite toggle
+    document.getElementById('favoriteBtn').addEventListener('click', function () {
+    if (favorites.includes(productId)) {
+    favorites = favorites.filter(id => id !== productId);
+    this.classList.remove('active');
+    this.textContent = '♡';
+    } else {
+    favorites.push(productId);
+    this.classList.add('active');
+    this.textContent = '♥';
+    }
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+    });
 
-        loadProduct();
-        updateCartBadge();
+    function updateCartBadge() {
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const total = cart.reduce((sum, i) => sum + i.quantity, 0);
+    const badge = document.getElementById('cartBadge');
+    if (badge) badge.textContent = total;
+    }
+
+    loadProduct();
+    updateCartBadge();
     </script>
 </body>
 

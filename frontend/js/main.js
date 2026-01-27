@@ -7,10 +7,17 @@ const state = {
     searchQuery: ''
 };
 
-// API Configuration - Improved for all local environments
-const API_URL = (['localhost', '127.0.0.1', '::1', ''].includes(window.location.hostname) || window.location.hostname.startsWith('192.168.'))
+// API Configuration with LIVE FALLBACK
+const LIVE_API = 'https://cosmetics-website-1.onrender.com/api';
+let API_URL = (['localhost', '127.0.0.1', '::1', ''].includes(window.location.hostname) || window.location.hostname.startsWith('192.168.'))
     ? `http://${window.location.hostname || 'localhost'}:5000/api`
-    : 'https://cosmetics-website-1.onrender.com/api';
+    : LIVE_API;
+
+// Test Local Connection, fallback if needed
+fetch(`${API_URL}/products/categories`).catch(() => {
+    console.warn('Local API not responding. Falling back to Production API.');
+    API_URL = LIVE_API;
+});
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
@@ -363,16 +370,6 @@ function renderCart() {
     `).join('');
     const total = state.cart.reduce((s, i) => s + (i.price * i.quantity), 0);
     if (totalSpan) totalSpan.textContent = `₹${total.toLocaleString()}`;
-
-    if (!document.getElementById('checkoutBtn')) {
-        const btn = document.createElement('button');
-        btn.id = 'checkoutBtn';
-        btn.className = 'btn btn-primary btn-block';
-        btn.style.marginTop = '20px';
-        btn.textContent = 'Proceed to Checkout';
-        btn.onclick = () => window.location.href = '/checkout.html';
-        document.querySelector('.cart-footer')?.appendChild(btn);
-    }
 }
 
 window.removeFromCart = (id) => {

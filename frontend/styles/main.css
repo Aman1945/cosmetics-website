@@ -61,6 +61,53 @@
   --radius-lg: 16px;
   --radius-xl: 24px;
   --radius-full: 9999px;
+
+  /* Skeleton Loader Colors */
+  --skeleton-bg: #f0f0f0;
+  --skeleton-highlight: #f8f8f8;
+}
+
+/* Skeleton Loader Animation */
+@keyframes skeleton-loading {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--skeleton-bg) 25%, var(--skeleton-highlight) 50%, var(--skeleton-bg) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: var(--radius-sm);
+  display: block;
+}
+
+.skeleton-text {
+  height: 1.2rem;
+  margin-bottom: 0.5rem;
+  width: 100%;
+}
+
+.skeleton-title {
+  height: 2rem;
+  width: 60%;
+  margin-bottom: 1rem;
+}
+
+.skeleton-img {
+  aspect-ratio: 1/1;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.skeleton-btn {
+  height: 3rem;
+  width: 100%;
+  border-radius: var(--radius-full);
 }
 
 /* Reset & Base Styles */

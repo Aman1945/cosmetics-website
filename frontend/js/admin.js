@@ -117,6 +117,11 @@ async function loadDashboardData() {
     if (cachedStats) {
         updateStatsUI(cachedStats.summary);
         renderRecentOrders(cachedStats.recentOrders);
+    } else {
+        // Show placeholders
+        document.getElementById('recentOrdersTableBody').innerHTML = Array(3).fill(0).map(() => `
+            <tr><td colspan="5"><div class="skeleton skeleton-text"></div></td></tr>
+        `).join('');
     }
 
     try {
@@ -169,6 +174,10 @@ async function loadProducts() {
     if (cached) {
         state.products = cached;
         renderProductsTable(cached);
+    } else {
+        document.getElementById('productsTableBody').innerHTML = Array(5).fill(0).map(() => `
+            <tr><td colspan="6"><div class="skeleton skeleton-text"></div></td></tr>
+        `).join('');
     }
 
     try {

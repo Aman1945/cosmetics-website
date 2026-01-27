@@ -1,4 +1,5 @@
 const express = require('express');
+const compression = require('compression');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
@@ -23,6 +24,9 @@ const rateLimit = require('express-rate-limit');
 dotenv.config();
 
 const app = express();
+
+// Enable Gzip compression
+app.use(compression());
 
 // Rate Limiting
 const apiLimiter = rateLimit({

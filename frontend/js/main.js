@@ -168,20 +168,10 @@ async function loadProducts(category = 'all', limit = 12) {
     // Instant Load: Show cached products for this category
     const cacheKey = `cached_products_${category}_${limit}`;
     const cached = JSON.parse(localStorage.getItem(cacheKey));
-    if (cached) {
+    if (cached && cached.length > 0) {
         renderProducts(cached);
-        // Update info bar for cached products
-        const grid = document.getElementById('productsGrid');
-        const existingInfo = document.getElementById('productResultsInfo');
-        if (existingInfo) existingInfo.remove();
-
-        const info = document.createElement('div');
-        info.id = 'productResultsInfo';
-        info.style.cssText = 'grid-column: 1/-1; text-align: left; margin-bottom: 20px; font-weight: 500; border-bottom: 1px solid #eee; padding-bottom: 10px; color: #1a1a1a;';
-        info.innerHTML = `Showing <b>${cached.length}</b> of <b>${cached.length}</b> products in <b>${category.toUpperCase()}</b> (cached)`;
-        if (grid && grid.parentElement) {
-            grid.parentElement.insertBefore(info, grid);
-        }
+    } else {
+        renderSkeletons();
     }
 
     try {
@@ -234,14 +224,19 @@ function renderProducts(products) {
 
     if (products.length === 0) {
         grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 50px; color: var(--gray);">No products found in this category.</div>';
+        grid.style.opacity = '1';
         return;
     }
 
     grid.innerHTML = products.map(product => `
-        <div class="product-card" data-product-id="${product._id}" style="opacity: 1;">
-            <div class="product-image" onclick="window.location.href='/product.html?id=${product._id}'" style="cursor: pointer;">
-                <img src="${product.images?.[0]?.url}" alt="${product.name}">
-                ${product.isFeatured ? '<span class="product-badge">BESTSELLER</span>' : ''}
+        <div class="product-card" data-category="${product.category}">
+            <div class="product-image-container" onclick="window.location.href='/product.html?id=${product._id}'" style="cursor: pointer;">
+                <img src="${product.images[0]?.url || 'https://via.placeholder.com/300'}" 
+                     alt="${product.name}" 
+                     class="product-image" 
+                     loading="lazy"
+                     onerror="this.src='https://via.placeholder.com/300?text=Product+Image'">
+                ${product.isFeatured ? '<span class="featured-badge">Featured</span>' : ''}
             </div>
             <div class="product-info">
                 <div class="product-category">${product.category}</div>
@@ -251,22 +246,37 @@ function renderProducts(products) {
                 </div>
                 <div class="product-footer">
                     <div class="product-price">₹${product.price.toLocaleString()}</div>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart('${product._id}')" title="Add to Bag">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/></svg>
-                        </button>
-                        <button class="add-to-cart-btn" onclick="event.stopPropagation(); toggleFavorite('${product._id}')" 
-                            style="background: ${isFavorite(product._id) ? 'var(--secondary)' : 'white'}; 
-                                   color: ${isFavorite(product._id) ? 'white' : 'var(--secondary)'}; 
-                                   border: 1px solid var(--secondary);" title="Favorite">
-                            ${isFavorite(product._id) ? '♥' : '♡'}
-                        </button>
-                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="addToCart('${product._id}')">
+                        Add to Bag
+                    </button>
                 </div>
             </div>
         </div>
     `).join('');
-    // Removed GSAP animation to fix stuck opacity issues
+
+    setTimeout(() => {
+        grid.style.opacity = '1';
+        grid.style.transition = 'opacity 0.3s ease-in';
+    }, 10);
+}
+
+function renderSkeletons() {
+    const grid = document.getElementById('productsGrid');
+    if (!grid) return;
+    grid.innerHTML = Array(8).fill(0).map(() => `
+        <div class="product-card skeleton-card">
+            <div class="skeleton skeleton-img"></div>
+            <div class="product-info">
+                <div class="skeleton skeleton-text" style="width: 30%"></div>
+                <div class="skeleton skeleton-title"></div>
+                <div class="skeleton skeleton-text" style="width: 40%"></div>
+                <div class="product-footer" style="gap: 10px">
+                    <div class="skeleton skeleton-text" style="width: 50%"></div>
+                    <div class="skeleton skeleton-btn"></div>
+                </div>
+            </div>
+        </div>
+    `).join('');
 }
 
 function isFavorite(id) {

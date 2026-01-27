@@ -266,6 +266,17 @@
     </footer>
 
     <script src="./js/cart.js"></script>
+    <script>
+        // Login button handler
+        document.getElementById('loginBtn')?.addEventListener('click', () => {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user) {
+                window.location.href = './profile.html';
+            } else {
+                window.location.href = './auth.html';
+            }
+        });
+    </script>
 </body>
 
 </html>

@@ -1,12 +1,3 @@
-import * as THREE from 'three';
-import { gsap } from 'gsap';
-
-// API Configuration - Using direct Render URL
-// API Configuration
-const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5000/api'
-    : 'https://cosmetics-website-1.onrender.com/api';
-
 // State Management
 const state = {
     cart: JSON.parse(localStorage.getItem('cart')) || [],
@@ -15,6 +6,11 @@ const state = {
     currentCategory: 'all',
     searchQuery: ''
 };
+
+// API Configuration - Improved for all local environments
+const API_URL = (['localhost', '127.0.0.1', '::1', ''].includes(window.location.hostname) || window.location.hostname.startsWith('192.168.'))
+    ? `http://${window.location.hostname || 'localhost'}:5000/api`
+    : 'https://cosmetics-website-1.onrender.com/api';
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
@@ -242,6 +238,11 @@ function renderProducts(products) {
             <div class="product-info">
                 <div class="product-category">${product.category}</div>
                 <h3 class="product-name" onclick="window.location.href='/product.html?id=${product._id}'" style="cursor: pointer;">${product.name}</h3>
+                <div class="product-rating" style="margin-bottom: 8px; display: flex; align-items: center; gap: 5px;">
+                    <span style="color: #ffc107;">★</span>
+                    <span style="font-weight: 600; font-size: 0.85rem;">${product.rating?.average || '0.0'}</span>
+                    <span style="color: #888; font-size: 0.8rem;">(${product.rating?.count || 0})</span>
+                </div>
                 <div style="font-size: 0.8rem; color: ${product.stock < 20 ? '#d32f2f' : '#666'}; margin-bottom: 10px;">
                     ${product.stock < 20 ? '⚠️ Low Stock: ' : 'Stock: '} <b>${product.stock}</b> units
                 </div>
@@ -382,7 +383,7 @@ window.removeFromCart = (id) => {
 };
 
 function init3DHero() {
-    const canvas = document.querySelector('#hero-canvas');
+    const canvas = document.querySelector('#hero3DCanvas');
     if (!canvas) return;
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);

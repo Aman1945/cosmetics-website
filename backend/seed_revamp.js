@@ -91,11 +91,46 @@ async function seedRevamp() {
         }
         console.log('✅ Added 500 dummy products');
 
-        // Create 50+ Orders
+        const reviewComments = [
+            "Amazing product! Highly recommend.",
+            "Loved the texture and finish.",
+            "Great value for money.",
+            "Definitely buying again!",
+            "Perfect for daily use.",
+            "A bit expensive but worth it.",
+            "The shade is perfect.",
+            "Doesn't last as long as I expected.",
+            "Top-notch quality!",
+            "My skin feels great after using this."
+        ];
+
+        const reviewerNames = ["Sarah", "Jasmine", "Emma", "Neha", "Rohan", "Alex", "Mia", "Zoya", "Aman", "Priya"];
+
+        // Create 50+ Orders and Reviews
         for (let k = 0; k < 50; k++) {
             const user = getRandom(users);
             const item1 = getRandom(products);
             const item2 = getRandom(products);
+
+            // Add reviews to products
+            for (const p of [item1, item2]) {
+                const numReviews = Math.floor(Math.random() * 3) + 1;
+                for (let r = 0; r < numReviews; r++) {
+                    const rating = Math.floor(Math.random() * 2) + 4;
+                    p.reviews.push({
+                        user: getRandom(users)._id,
+                        name: getRandom(reviewerNames),
+                        rating: rating,
+                        comment: getRandom(reviewComments)
+                    });
+                }
+                const totalRating = p.reviews.reduce((sum, rev) => sum + rev.rating, 0);
+                p.rating = {
+                    average: (totalRating / p.reviews.length).toFixed(1),
+                    count: p.reviews.length
+                };
+                await p.save();
+            }
 
             const items = [
                 { productId: item1._id, name: item1.name, price: item1.price, quantity: 1, image: item1.images[0].url },
@@ -113,11 +148,11 @@ async function seedRevamp() {
                 subtotal,
                 total,
                 status: getRandom(['pending', 'processing', 'shipped', 'delivered']),
-                createdAt: new Date(Date.now() - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000)) // Random date in last 30 days
+                createdAt: new Date(Date.now() - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000))
             });
             await order.save();
         }
-        console.log('✅ Created 50 random orders');
+        console.log('✅ Created 50 random orders and 200+ reviews');
 
         // Seed 3 Offers
         const offer1 = new Offer({

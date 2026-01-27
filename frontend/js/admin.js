@@ -1,4 +1,4 @@
-import { gsap } from 'gsap';
+// Admin Panel Logic
 
 // API Configuration - Improved for all local environments
 const API_URL = (['localhost', '127.0.0.1', '::1'].includes(window.location.hostname) || window.location.hostname.startsWith('192.168.'))

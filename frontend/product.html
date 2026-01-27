@@ -256,6 +256,14 @@
             </div>
         </div>
 
+        <!-- Reviews Section -->
+        <div style="margin-top: 80px; padding-top: 50px; border-top: 1px solid #eee;">
+            <h2 class="section-title" style="text-align: left; margin-bottom: 30px;">Customer Reviews</h2>
+            <div id="reviewsContainer" style="display: grid; gap: 20px;">
+                <!-- Reviews will be loaded here -->
+            </div>
+        </div>
+
         <!-- Suggested Products -->
         <div class="suggested-products">
             <h2 class="section-title">You May Also Like</h2>
@@ -264,7 +272,10 @@
     </div>
 
     <script>
-        const API_URL = 'https://cosmetics-website-1.onrender.com/api';
+        const API_URL = (['localhost', '127.0.0.1', '::1', ''].includes(window.location.hostname) || window.location.hostname.startsWith('192.168.'))
+            ? `http://${window.location.hostname || 'localhost'}:5000/api`
+            : 'https://cosmetics-website-1.onrender.com/api';
+
         let currentProduct = null;
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
@@ -279,57 +290,100 @@
         // Load product
         async function loadProduct() {
             try {
-                const res = await fetch(`${API_URL}/products`);
+                // Load single product for efficiency
+                const res = await fetch(`${API_URL}/products/${productId}`);
                 const data = await res.json();
 
                 if (data.success) {
-                    currentProduct = data.data.products.find(p => p._id === productId);
-                    if (currentProduct) {
-                        renderProduct();
-                        loadSuggestedProducts(data.data.products);
-                    } else {
-                        alert('Product not found');
-                        window.location.href = '/';
-                    }
+                    currentProduct = data.data.product;
+                    renderProduct();
+                    renderReviews(currentProduct.reviews || []);
+                    loadSuggested();
+                } else {
+                    alert('Product not found');
+                    window.location.href = '/';
                 }
             } catch (error) {
                 console.error('Error:', error);
             }
         }
 
+        async function loadSuggested() {
+            try {
+                const res = await fetch(`${API_URL}/products?category=${currentProduct.category}&limit=4`);
+                const data = await res.json();
+                if (data.success) {
+                    const suggested = data.data.products.filter(p => p._id !== productId);
+                    document.getElementById('suggestedGrid').innerHTML = suggested.map(p => `
+                        <div class="product-card" onclick="window.location.href='/product.html?id=${p._id}'" style="cursor: pointer; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                            <div class="product-image" style="height: 200px; overflow: hidden;">
+                                <img src="${p.images[0]?.url}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                            <div class="product-info" style="padding: 15px;">
+                                <h3 class="product-name" style="font-size: 1rem; margin-bottom: 5px;">${p.name}</h3>
+                                <div class="product-price" style="font-size: 1.1rem; color: #fc2779; font-weight: 700;">₹${p.price.toLocaleString()}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) { }
+        }
+
         function renderProduct() {
+            document.title = `${currentProduct.name} - AS³Cosmetic`;
             document.getElementById('productName').textContent = currentProduct.name;
             document.getElementById('productBrand').textContent = currentProduct.brand;
             document.getElementById('productPrice').textContent = `₹${currentProduct.price.toLocaleString()}`;
-            document.getElementById('productDescription').textContent = currentProduct.description || 'Premium cosmetic product crafted with the finest ingredients for your beauty';
+            document.getElementById('productDescription').textContent = currentProduct.description;
 
             const mainImg = currentProduct.images[0]?.url || 'https://via.placeholder.com/600';
             document.getElementById('mainImage').src = mainImg;
 
-            // Check if favorited
+            // Rating display
+            const avg = currentProduct.rating?.average || '0.0';
+            const count = currentProduct.rating?.count || 0;
+            document.querySelector('.product-rating').innerHTML = `
+                <span class="stars" style="color: #ffc107;">${'★'.repeat(Math.round(avg))}${'☆'.repeat(5 - Math.round(avg))}</span>
+                <span style="color: #666; font-weight: 600;">${avg} (${count} reviews)</span>
+            `;
+
+            // Thumbnails
+            if (currentProduct.images && currentProduct.images.length > 0) {
+                document.getElementById('thumbnails').innerHTML = currentProduct.images.map((img, idx) => `
+                    <img src="${img.url}" class="thumbnail ${idx === 0 ? 'active' : ''}" onclick="changeMainImage(this.src, this)">
+                `).join('');
+            }
+
             if (favorites.includes(productId)) {
                 document.getElementById('favoriteBtn').classList.add('active');
                 document.getElementById('favoriteBtn').textContent = '♥';
             }
         }
 
-        function loadSuggestedProducts(allProducts) {
-            const suggested = allProducts
-                .filter(p => p._id !== productId && p.category === currentProduct.category)
-                .slice(0, 4);
+        function renderReviews(reviews) {
+            const container = document.getElementById('reviewsContainer');
+            if (!reviews || reviews.length === 0) {
+                container.innerHTML = '<p style="color: #888;">No reviews yet. Be the first to review!</p>';
+                return;
+            }
 
-            document.getElementById('suggestedGrid').innerHTML = suggested.map(p => `
-                <div class="product-card" onclick="window.location.href='/product.html?id=${p._id}'">
-                    <div class="product-image">
-                        <img src="${p.images[0]?.url}" alt="${p.name}">
+            container.innerHTML = reviews.map(rev => `
+                <div style="background: #fdfdfd; padding: 20px; border-radius: 12px; border: 1px solid #f0f0f0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <span style="font-weight: 700; color: #1a1a2e;">${rev.name}</span>
+                        <span style="color: #ffc107;">${'★'.repeat(rev.rating)}${'☆'.repeat(5 - rev.rating)}</span>
                     </div>
-                    <div class="product-info">
-                        <h3 class="product-name">${p.name}</h3>
-                        <div class="product-price">₹${p.price.toLocaleString()}</div>
-                    </div>
+                    <p style="color: #555; line-height: 1.6; margin: 0;">${rev.comment}</p>
+                    <small style="color: #aaa; display: block; margin-top: 10px;">${new Date(rev.createdAt).toLocaleDateString()}</small>
                 </div>
-            `).join('');
+            `).sort(() => 0.5 - Math.random()).join(''); // Randomize order for dummy feel
         }
+
+        window.changeMainImage = (src, thumb) => {
+            document.getElementById('mainImage').src = src;
+            document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+            thumb.classList.add('active');
+        };
 
         // Add to cart
         document.getElementById('addToCartBtn').addEventListener('click', () => {
@@ -359,12 +413,10 @@
                 favorites = favorites.filter(id => id !== productId);
                 this.classList.remove('active');
                 this.textContent = '♡';
-                alert('Removed from favorites');
             } else {
                 favorites.push(productId);
                 this.classList.add('active');
                 this.textContent = '♥';
-                alert('❤️ Added to favorites!');
             }
             localStorage.setItem('favorites', JSON.stringify(favorites));
         });
@@ -372,7 +424,8 @@
         function updateCartBadge() {
             const cart = JSON.parse(localStorage.getItem('cart')) || [];
             const total = cart.reduce((sum, i) => sum + i.quantity, 0);
-            document.getElementById('cartBadge').textContent = total;
+            const badge = document.getElementById('cartBadge');
+            if (badge) badge.textContent = total;
         }
 
         loadProduct();

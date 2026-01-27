@@ -18,15 +18,16 @@ const state = {
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
+    initNavigationProtection();
     initNavigation();
     initSearch();
-    initViewAll();
+    initCart();
+    initFilters();
     initLoginModal();
     init3DHero();
-    loadOffers(); // New: Load Trending Offers
+    loadOffers();
     loadProducts();
-    initCart();
-    initFilters(); // Added filter initialization
+    initViewAll();
     initForms();
     initScrollAnimations();
     updateCartBadge();
@@ -414,5 +415,18 @@ function initViewAll() {
         document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' });
     });
 }
+function initNavigationProtection() {
+    window.addEventListener('beforeunload', (e) => {
+        if (state.user || state.cart.length > 0) {
+            // Standard browser confirmation
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+
+    // Optional: Intercept internal link clicks if needed, 
+    // but beforeunload handles the most critical 'browser exit' cases.
+}
+
 function initForms() { }
 function initScrollAnimations() { }

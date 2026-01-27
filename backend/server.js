@@ -15,18 +15,46 @@ const Product = require('./models/Product');
 const User = require('./models/User');
 const Order = require('./models/Order');
 
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
 const { auth, adminAuth } = require('./middleware/auth');
 const NodeCache = require('node-cache');
-const analyticsCache = new NodeCache({ stdTTL: 60 }); // Cache analytics for 60 seconds
-
+const analyticsCache = new NodeCache({ stdTTL: 60 });
 const rateLimit = require('express-rate-limit');
 
 dotenv.config();
 
 const app = express();
 
-// Enable Gzip compression
-app.use(compression());
+// Security Headers
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
+// Restricted CORS
+const allowedOrigins = [
+    'http://localhost:5000',
+    'http://127.0.0.1:5000',
+    'http://localhost:5500', // VS Code Live Server
+    'http://127.0.0.1:5500',
+    'https://luxeglow-cosmetic.netlify.app',
+    'https://aman-cosmetic.vercel.app'
+];
+
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.indexOf(origin) !== -1 || origin.startsWith('http://192.168.')) {
+            callback(null, true);
+        } else {
+            callback(new Error('CORS blocked: Security restriction.'));
+        }
+    },
+    credentials: true
+}));
+
+// Body Parser with limits
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // Rate Limiting
 const apiLimiter = rateLimit({

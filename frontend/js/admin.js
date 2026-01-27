@@ -1,7 +1,8 @@
 import { gsap } from 'gsap';
 
-const API_URL = ['localhost', '127.0.0.1', '', '::1'].includes(window.location.hostname)
-    ? 'http://localhost:5000/api'
+// API Configuration - Improved for all local environments
+const API_URL = (['localhost', '127.0.0.1', '::1'].includes(window.location.hostname) || window.location.hostname.startsWith('192.168.'))
+    ? `http://${window.location.hostname}:5000/api`
     : 'https://cosmetics-website-1.onrender.com/api';
 
 console.log('Admin API connected to:', API_URL);
@@ -16,6 +17,7 @@ const state = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    // initNavigationProtection(); // Removed as per instruction 4
     checkAuth();
     initLogin();
     initNavigation();
@@ -137,9 +139,12 @@ async function loadDashboardData() {
             renderRecentOrders(data.data.recentOrders || []);
             localStorage.setItem('admin_stats_cache', JSON.stringify(data.data));
             loadProducts();
+        } else {
+            alert('Failed to load dashboard data: ' + (data.message || 'Unknown error'));
         }
     } catch (error) {
         console.error('Analytics error:', error);
+        alert('Error loading dashboard data. Please check your connection.');
     }
 }
 
@@ -190,9 +195,12 @@ async function loadProducts() {
             localStorage.setItem('admin_products_cache', JSON.stringify(state.products));
             const countElem = document.getElementById('totalProductsCount');
             if (countElem) countElem.textContent = state.products.length;
+        } else {
+            alert('Failed to load products: ' + (data.message || 'Unknown error'));
         }
     } catch (error) {
         console.error('Error loading products:', error);
+        alert('Error loading products. Please check your connection.');
     }
 }
 
@@ -215,9 +223,12 @@ async function loadOrders() {
             state.orders = data.data.orders;
             renderOrdersTable(state.orders);
             localStorage.setItem('admin_orders_cache', JSON.stringify(state.orders));
+        } else {
+            alert('Failed to load orders: ' + (data.message || 'Unknown error'));
         }
     } catch (error) {
         console.error('Error loading orders:', error);
+        alert('Error loading orders. Please check your connection.');
     }
 }
 
@@ -231,8 +242,13 @@ async function loadUsers() {
         if (data.success) {
             state.users = data.data.users;
             renderUsersTable(state.users);
+        } else {
+            alert('Failed to load users: ' + (data.message || 'Unknown error'));
         }
-    } catch (error) { console.error('Error loading users:', error); }
+    } catch (error) {
+        console.error('Error loading users:', error);
+        alert('Error loading users. Please check your connection.');
+    }
 }
 
 async function loadOffers() {
@@ -242,9 +258,23 @@ async function loadOffers() {
         if (data.success) {
             state.offers = data.data.offers;
             renderOffersTable(state.offers);
+        } else {
+            alert('Failed to load offers: ' + (data.message || 'Unknown error'));
         }
-    } catch (error) { console.error('Error loading offers:', error); }
+    } catch (error) {
+        console.error('Error loading offers:', error);
+        alert('Error loading offers. Please check your connection.');
+    }
 }
+
+// function initNavigationProtection() { // Removed as per instruction 4
+//     window.addEventListener('beforeunload', (e) => {
+//         if (state.isAuthenticated) {
+//             e.preventDefault();
+//             e.returnValue = 'Are you sure you want to leave the admin panel?';
+//         }
+//     });
+// }
 
 function renderOffersTable(offers) {
     const tbody = document.getElementById('offersTableBody');
@@ -287,7 +317,7 @@ document.getElementById('offerForm')?.addEventListener('submit', async (e) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}` // Fixed: Use adminToken
             },
             body: JSON.stringify(offerData)
         });
@@ -307,7 +337,7 @@ window.deleteOffer = async (id) => {
     try {
         const res = await fetch(`${API_URL}/offers/${id}`, {
             method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` } // Fixed: Use adminToken
         });
         const data = await res.json();
         if (data.success) {
@@ -422,18 +452,25 @@ function initOrderManagement() {
 
 window.updateOrderStatus = async (id, status) => {
     try {
+        const token = localStorage.getItem('adminToken');
         const response = await fetch(`${API_URL}/orders/${id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify({ status })
         });
         const data = await response.json();
         if (data.success) {
             alert('Order status updated!');
             loadDashboardData();
+            loadOrders(); // Refresh order table too
+        } else {
+            alert('Status update failed: ' + data.message);
         }
     } catch (e) {
-        alert('Update failed');
+        alert('Update failed: Server connection error');
     }
 };
 

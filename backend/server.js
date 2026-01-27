@@ -14,6 +14,10 @@ const Product = require('./models/Product');
 const User = require('./models/User');
 const Order = require('./models/Order');
 
+const { auth, adminAuth } = require('./middleware/auth');
+const NodeCache = require('node-cache');
+const analyticsCache = new NodeCache({ stdTTL: 60 }); // Cache analytics for 60 seconds
+
 const rateLimit = require('express-rate-limit');
 
 dotenv.config();
@@ -70,23 +74,30 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/offers', offerRoutes);
 
 // Additional Admin Routes (if not in modular routes)
-app.get('/api/admin/analytics', async (req, res) => {
+app.get('/api/admin/analytics', auth, adminAuth, async (req, res) => {
     try {
+        const cachedAnalytics = analyticsCache.get('admin_stats');
+        if (cachedAnalytics) return res.json({ success: true, data: cachedAnalytics });
+
         const orders = await Order.find();
         const users = await User.countDocuments({ role: 'user' });
         const revenue = orders.reduce((sum, o) => sum + o.total, 0);
+
+        const analyticsData = {
+            summary: {
+                totalOrders: orders.length,
+                totalRevenue: revenue,
+                totalUsers: users,
+                pendingOrders: orders.filter(o => o.status === 'pending').length,
+                estimatedProfit: revenue * 0.4
+            },
+            recentOrders: orders.slice(-5)
+        };
+
+        analyticsCache.set('admin_stats', analyticsData);
         res.json({
             success: true,
-            data: {
-                summary: {
-                    totalOrders: orders.length,
-                    totalRevenue: revenue,
-                    totalUsers: users,
-                    pendingOrders: 0,
-                    estimatedProfit: revenue * 0.4
-                },
-                recentOrders: orders.slice(-5)
-            }
+            data: analyticsData
         });
     } catch (e) {
         res.status(500).json({ success: false, message: e.message });
@@ -94,7 +105,7 @@ app.get('/api/admin/analytics', async (req, res) => {
 });
 
 // Admin User Management (if not in modular routes)
-app.get('/api/admin/users', async (req, res) => {
+app.get('/api/admin/users', auth, adminAuth, async (req, res) => {
     try {
         const users = await User.find({ role: 'user' }).sort({ createdAt: -1 });
         res.json({ success: true, data: { users, total: users.length } });
@@ -103,7 +114,7 @@ app.get('/api/admin/users', async (req, res) => {
     }
 });
 
-app.put('/api/admin/users/:id', async (req, res) => {
+app.put('/api/admin/users/:id', auth, adminAuth, async (req, res) => {
     try {
         const { name, email, phone, isVerified } = req.body;
         const user = await User.findByIdAndUpdate(

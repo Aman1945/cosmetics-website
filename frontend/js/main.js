@@ -162,9 +162,29 @@ function renderOffers(offers) {
     `).join('');
 }
 
-async function loadProducts(category = 'all', limit = 20) {
+async function loadProducts(category = 'all', limit = 12) {
+    state.currentCategory = category;
+
+    // Instant Load: Show cached products for this category
+    const cacheKey = `cached_products_${category}_${limit}`;
+    const cached = JSON.parse(localStorage.getItem(cacheKey));
+    if (cached) {
+        renderProducts(cached);
+        // Update info bar for cached products
+        const grid = document.getElementById('productsGrid');
+        const existingInfo = document.getElementById('productResultsInfo');
+        if (existingInfo) existingInfo.remove();
+
+        const info = document.createElement('div');
+        info.id = 'productResultsInfo';
+        info.style.cssText = 'grid-column: 1/-1; text-align: left; margin-bottom: 20px; font-weight: 500; border-bottom: 1px solid #eee; padding-bottom: 10px; color: #1a1a1a;';
+        info.innerHTML = `Showing <b>${cached.length}</b> of <b>${cached.length}</b> products in <b>${category.toUpperCase()}</b> (cached)`;
+        if (grid && grid.parentElement) {
+            grid.parentElement.insertBefore(info, grid);
+        }
+    }
+
     try {
-        state.currentCategory = category;
         let url = `${API_URL}/products?limit=${limit}`;
         if (category !== 'all') url += `&category=${category}`;
 
@@ -174,6 +194,7 @@ async function loadProducts(category = 'all', limit = 20) {
         if (data.success) {
             state.products = data.data.products;
             renderProducts(state.products);
+            localStorage.setItem(cacheKey, JSON.stringify(state.products));
 
             // Add Info Bar
             const grid = document.getElementById('productsGrid');

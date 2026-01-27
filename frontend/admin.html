@@ -385,7 +385,23 @@
             <!-- Users View -->
             <div id="usersView" class="view-section" style="display: none;">
                 <h2 class="section-title">Registered Customers</h2>
-                <div id="usersList" style="margin-top: 2rem;">Coming Soon - User list integration</div>
+                <div
+                    style="background: white; padding: 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); margin-top: 2rem;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Joined Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <!-- Users loaded here -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </main>
     </div>

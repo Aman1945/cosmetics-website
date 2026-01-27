@@ -101,6 +101,7 @@ function initNavigation() {
 
             if (item.dataset.view === 'products') loadProducts();
             if (item.dataset.view === 'orders') loadOrders();
+            if (item.dataset.view === 'users') loadUsers();
             if (item.dataset.view === 'dashboard') loadDashboardData();
         });
     });
@@ -171,6 +172,38 @@ async function loadOrders() {
     } catch (error) {
         console.error('Error loading orders:', error);
     }
+}
+
+async function loadUsers() {
+    try {
+        const response = await fetch(`${API_URL}/admin/users`);
+        const data = await response.json();
+
+        if (data.success) {
+            state.users = data.data.users;
+            renderUsersTable(state.users);
+        }
+    } catch (error) {
+        console.error('Error loading users:', error);
+    }
+}
+
+function renderUsersTable(users) {
+    const tbody = document.getElementById('usersTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = users.map(user => `
+        <tr>
+            <td style="font-weight: 600;">${user.name}</td>
+            <td>${user.email}</td>
+            <td><span class="status-badge" style="background: #eee; color: #333;">${user.role}</span></td>
+            <td>
+                <span class="status-badge ${user.isActive ? 'status-delivered' : 'status-cancelled'}">
+                    ${user.isActive ? 'Active' : 'Inactive'}
+                </span>
+            </td>
+            <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+        </tr>
+    `).join('');
 }
 
 function renderProductsTable(products) {
